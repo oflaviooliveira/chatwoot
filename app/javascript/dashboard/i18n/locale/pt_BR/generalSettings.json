@@ -1,8 +1,8 @@
 {
   "GENERAL_SETTINGS": {
     "LIMIT_MESSAGES": {
-      "CONVERSATION": "Você excedeu o limite de conversas. O plano Hacker permite apenas 500 conversas.",
-      "INBOXES": "Você excedeu o limite da caixa de entrada. O plano Hacker só suporta chat ao vivo do site. Caixas adicionais como e-mail, WhatsApp etc. requerem um plano pago.",
+      "CONVERSATION": "Você excedeu o limite operacional de conversas desta instalação. Fale com o administrador para ajustar a capacidade.",
+      "INBOXES": "Você excedeu o limite operacional de caixas de entrada desta instalação. Fale com o administrador para ajustar a capacidade.",
       "AGENTS": "Você excedeu o limite do agente. Seu plano permite apenas {allowedAgents} agentes.",
       "NON_ADMIN": "Entre em contato com o administrador para atualizar o plano e continuar usando todos os recursos."
     },
@@ -123,12 +123,12 @@
         "CUSTOM_EMAIL_DOMAIN_ENABLED": "Você pode receber e-mails em seu domínio personalizado agora."
       }
     },
-    "UPDATE_CHATWOOT": "Uma atualização {latestChatwootVersion} para o Chatwoot está disponível. Por favor, atualize sua instância.",
+    "UPDATE_CHATWOOT": "Uma atualização do sistema está disponível.",
     "LEARN_MORE": "Saiba mais",
-    "PAYMENT_PENDING": "Seu pagamento está pendente. Por favor, atualize suas informações de pagamento para continuar usando o Chatwoot",
-    "UPGRADE": "Atualize para continuar usando o Chatwoot",
-    "LIMITS_UPGRADE": "Sua conta excedeu os limites de uso. Por favor, faça um upgrade do seu plano para continuar usando o Chatwoot",
-    "OPEN_BILLING": "Abrir faturamento"
+    "PAYMENT_PENDING": "Existe uma pendência administrativa na sua conta.",
+    "UPGRADE": "Entre em contato com o administrador do sistema.",
+    "LIMITS_UPGRADE": "Sua conta excedeu os limites configurados. Entre em contato com o administrador do sistema.",
+    "OPEN_BILLING": "Ver detalhes"
   },
   "FORMS": {
     "MULTISELECT": {

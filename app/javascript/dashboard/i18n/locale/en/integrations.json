@@ -442,20 +442,20 @@
       "CREDIT_NOTE": "Messages sent here will count toward your Captain credits."
     },
     "PAYWALL": {
-      "TITLE": "Upgrade to use Captain AI",
-      "AVAILABLE_ON": "Captain is not available on the free plan.",
-      "UPGRADE_PROMPT": "Upgrade your plan to get access to our assistants, copilot and more.",
-      "UPGRADE_NOW": "Upgrade now",
-      "CANCEL_ANYTIME": "You can change or cancel your plan anytime"
+      "TITLE": "Captain AI is in preparation",
+      "AVAILABLE_ON": "We are preparing a GQuick-native AI experience.",
+      "UPGRADE_PROMPT": "This feature will be released when it is ready for operational use.",
+      "UPGRADE_NOW": "Coming soon",
+      "CANCEL_ANYTIME": ""
     },
     "ENTERPRISE_PAYWALL": {
-      "AVAILABLE_ON": "Captain AI is only available in the Enterprise plans.",
-      "UPGRADE_PROMPT": "Upgrade your plan to get access to our assistants, copilot and more.",
-      "ASK_ADMIN": "Please reach out to your administrator for the upgrade."
+      "AVAILABLE_ON": "We are preparing a GQuick-native AI experience.",
+      "UPGRADE_PROMPT": "This feature will be released when it is ready for operational use.",
+      "ASK_ADMIN": "Please reach out to your administrator."
     },
     "BANNER": {
-      "RESPONSES": "You've used over 80% of your response limit. To continue using Captain AI, please upgrade.",
-      "DOCUMENTS": "Document limit reached. Upgrade to continue using Captain AI."
+      "RESPONSES": "The operational AI response limit is almost reached.",
+      "DOCUMENTS": "The operational AI document limit has been reached."
     },
     "FORM": {
       "CANCEL": "Cancel",
@@ -839,16 +839,16 @@
         "ERROR_MESSAGE": "Failed to delete custom tool"
       },
       "PAYWALL": {
-        "TITLE": "Upgrade to use tools with Captain",
-        "AVAILABLE_ON": "Captain Tools are only available in Business and Enterprise plans. Please upgrade to Business plan to use the feature.",
-        "UPGRADE_PROMPT": "",
-        "UPGRADE_NOW": "Open billing",
+        "TITLE": "AI tools are in preparation",
+        "AVAILABLE_ON": "We are preparing GQuick-native AI tools.",
+        "UPGRADE_PROMPT": "This feature will be released when it is ready for operational use.",
+        "UPGRADE_NOW": "Coming soon",
         "CANCEL_ANYTIME": ""
       },
       "ENTERPRISE_PAYWALL": {
-        "AVAILABLE_ON": "Captain Tools are only available in the paid plans.",
-        "UPGRADE_PROMPT": "Please upgrade to a paid plan to use this feature.",
-        "ASK_ADMIN": "Please reach out to your administrator for the upgrade."
+        "AVAILABLE_ON": "We are preparing GQuick-native AI tools.",
+        "UPGRADE_PROMPT": "This feature will be released when it is ready for operational use.",
+        "ASK_ADMIN": "Please reach out to your administrator."
       },
       "TEST": {
         "BUTTON": "Test connection",

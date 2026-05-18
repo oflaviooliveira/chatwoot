@@ -10,16 +10,16 @@
     "NO_RESULTS": "No custom roles found matching your search",
     "SEARCH_404": "There are no items matching this query.",
     "PAYWALL": {
-      "TITLE": "Upgrade to create custom roles",
-      "AVAILABLE_ON": "The custom role feature is only available in the Business and Enterprise plans.",
-      "UPGRADE_PROMPT": "Upgrade your plan to get access to advanced features like team management, automations, custom attributes, and more.",
-      "UPGRADE_NOW": "Upgrade now",
-      "CANCEL_ANYTIME": "You can change or cancel your plan anytime"
+      "TITLE": "Custom roles are in preparation",
+      "AVAILABLE_ON": "This feature will be available in GQuick when it is ready for production.",
+      "UPGRADE_PROMPT": "We are preparing a dedicated permissions experience for teams and BPO operations.",
+      "UPGRADE_NOW": "Coming soon",
+      "CANCEL_ANYTIME": "You can keep using the default administrator and agent roles"
     },
     "ENTERPRISE_PAYWALL": {
-      "AVAILABLE_ON": "The custom role feature is only available in the paid plans.",
-      "UPGRADE_PROMPT": "Upgrade to a paid plan to access advanced features like audit logs, agent capacity, and more.",
-      "ASK_ADMIN": "Please reach out to your administrator for the upgrade."
+      "AVAILABLE_ON": "This feature is not active in this installation yet.",
+      "UPGRADE_PROMPT": "We are preparing a GQuick-native version.",
+      "ASK_ADMIN": "Please reach out to your system administrator."
     },
     "LIST": {
       "404": "There are no custom roles available in this account.",

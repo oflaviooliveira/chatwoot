@@ -386,7 +386,7 @@
   },
   "CAPTAIN_SETTINGS": {
     "TITLE": "Configurações do Capitão",
-    "DESCRIPTION": "Configure seus modelos e recursos de IA para o Capitão. O Capitão utiliza um modelo de cobrança baseado em créditos; você será cobrado em créditos por cada ação que o Capitão realizar, dependendo do modelo selecionado.",
+    "DESCRIPTION": "Configure modelos e recursos de IA quando estiverem habilitados para a operação.",
     "LOADING": "Carregando configurações do Capitão...",
     "LINK_TEXT": "Saiba mais sobre os Créditos do Capitão",
     "NOT_ENABLED": "O Capitão não está habilitado para a sua conta. Atualize seu plano para acessar os recursos do Capitão.",
@@ -433,44 +433,44 @@
     }
   },
   "BILLING_SETTINGS": {
-    "TITLE": "Cobrança",
-    "DESCRIPTION": "Gerencie sua assinatura aqui, faça o upgrade do seu plano e obtenha mais para seu time.",
+    "TITLE": "Operação",
+    "DESCRIPTION": "Acompanhe recursos operacionais da instalação GQuick.",
     "CURRENT_PLAN": {
       "TITLE": "Plano Atual",
       "PLAN_NOTE": "Você está atualmente inscrito no plano **{plan}** com **{quantity}** licenças",
       "SEAT_COUNT": "Número de assentos",
       "RENEWS_ON": "Renovações em"
     },
-    "VIEW_PRICING": "Ver Preços",
+    "VIEW_PRICING": "Ver recursos",
     "MANAGE_SUBSCRIPTION": {
-      "TITLE": "Gerencie sua assinatura",
-      "DESCRIPTION": "Veja suas faturas anteriores, edite seus detalhes de cobrança, ou cancele sua assinatura.",
-      "BUTTON_TXT": "Ir para o portal de cobrança"
+      "TITLE": "Configuração operacional",
+      "DESCRIPTION": "As configurações comerciais desta instalação são gerenciadas pela equipe GQuick.",
+      "BUTTON_TXT": "Abrir configurações"
     },
     "CAPTAIN": {
       "TITLE": "Capitão",
-      "DESCRIPTION": "Gerenciar uso e créditos para o Captain AI.",
-      "BUTTON_TXT": "Comprar mais créditos",
+      "DESCRIPTION": "Gerenciar recursos de IA quando estiverem habilitados para a operação.",
+      "BUTTON_TXT": "Ver recursos",
       "DOCUMENTS": "Documentos",
       "RESPONSES": "Respostas",
-      "UPGRADE": "O capitão não está disponível no plano gratuito, faça o upgrade para ter acesso aos assistentes, co-piloto e muito mais.",
+      "UPGRADE": "Estamos preparando uma experiência própria de IA para a GQuick.",
       "REFRESH_CREDITS": "Atualizar"
     },
     "CHAT_WITH_US": {
       "TITLE": "Precisa de ajuda?",
-      "DESCRIPTION": "Você está com algum problema de cobrança? Nós estamos aqui para ajudar.",
+      "DESCRIPTION": "Entre em contato com o administrador da operação.",
       "BUTTON_TXT": "Fale conosco no chat"
     },
-    "NO_BILLING_USER": "A sua conta de cobrança está sendo configurada. Atualize a página e tente novamente.",
+    "NO_BILLING_USER": "A configuração operacional está sendo preparada. Atualize a página e tente novamente.",
     "TOPUP": {
-      "BUY_CREDITS": "Comprar mais créditos",
-      "MODAL_TITLE": "Comprar Créditos de IA",
-      "MODAL_DESCRIPTION": "Comprar créditos adicionais para o Capitão IA.",
+      "BUY_CREDITS": "Ver recursos de IA",
+      "MODAL_TITLE": "Recursos de IA",
+      "MODAL_DESCRIPTION": "Configuração de recursos adicionais de IA.",
       "CREDITS": "CRÉDITOS",
       "ONE_TIME": "único",
       "POPULAR": "Mais populares",
       "NOTE_TITLE": "Nota:",
-      "NOTE_DESCRIPTION": "Créditos são adicionados imediatamente e expiram em 6 meses. Uma assinatura ativa é necessária para usar créditos. Créditos adquiridos são consumidos após seus créditos do plano mensal.",
+      "NOTE_DESCRIPTION": "Os limites de IA serão definidos pela configuração operacional da instalação.",
       "CANCEL": "Cancelar",
       "PURCHASE": "Comprar Créditos",
       "LOADING": "Carregando opções...",
@@ -537,16 +537,16 @@
         "IDP_ENTITY_ID_ERROR": "O ID da Entidade do Provedor de Identidade é obrigatório"
       },
       "ENTERPRISE_PAYWALL": {
-        "AVAILABLE_ON": "O recurso de SSO via SAML está disponível apenas nos planos Enterprise.",
-        "UPGRADE_PROMPT": "Atualize para um plano Enterprise para ter acesso ao login único via SAML e outros recursos avançados de segurança.",
-        "ASK_ADMIN": "Entre em contato com seu administrador para fazer a atualização."
+        "AVAILABLE_ON": "O recurso de SSO via SAML ainda não está ativo nesta instalação.",
+        "UPGRADE_PROMPT": "Estamos preparando uma versão própria para a GQuick.",
+        "ASK_ADMIN": "Entre em contato com o administrador do sistema."
       },
       "PAYWALL": {
-        "TITLE": "Atualizar para habilitar o SSO via SAML",
-        "AVAILABLE_ON": "O recurso de SSO via SAML está disponível apenas nos planos Enterprise.",
-        "UPGRADE_PROMPT": "Atualize seu plano para ter acesso ao login único via SAML e outros recursos avançados.",
-        "UPGRADE_NOW": "Atualizar agora",
-        "CANCEL_ANYTIME": "Você pode alterar ou cancelar seu plano a qualquer momento"
+        "TITLE": "SSO via SAML em preparação",
+        "AVAILABLE_ON": "Este recurso será disponibilizado na versão GQuick quando estiver pronto para produção.",
+        "UPGRADE_PROMPT": "Estamos preparando uma experiência própria de autenticação corporativa.",
+        "UPGRADE_NOW": "Em breve",
+        "CANCEL_ANYTIME": "Você pode continuar usando login por e-mail e senha"
       },
       "ATTRIBUTE_MAPPING": {
         "TITLE": "Configuração de Atributos SAML",
@@ -597,16 +597,16 @@
         }
       },
       "PAYWALL": {
-        "TITLE": "Atualize para usar os atributos obrigatórios",
-        "AVAILABLE_ON": "O recurso de atributos obrigatórios da conversa está disponível nos planos Business e Enterprise.",
-        "UPGRADE_PROMPT": "Atualize seu plano para solicitar que os agentes preencham os atributos obrigatórios antes da resolução da conversa.",
-        "UPGRADE_NOW": "Atualizar agora",
-        "CANCEL_ANYTIME": "Você pode alterar ou cancelar seu plano a qualquer momento"
+        "TITLE": "Atributos obrigatórios em preparação",
+        "AVAILABLE_ON": "Este recurso será disponibilizado na versão GQuick quando estiver pronto para produção.",
+        "UPGRADE_PROMPT": "Estamos preparando regras próprias para padronizar o encerramento de conversas.",
+        "UPGRADE_NOW": "Em breve",
+        "CANCEL_ANYTIME": "Você pode continuar usando atributos personalizados sem obrigatoriedade"
       },
       "ENTERPRISE_PAYWALL": {
-        "AVAILABLE_ON": "O recurso de atributos obrigatórios de conversa está disponível nos planos pagos.",
-        "UPGRADE_PROMPT": "Atualize para um plano pago para exigir atributos obrigatórios antes da resolução da conversa.",
-        "ASK_ADMIN": "Entre em contato com seu administrador para fazer a atualização."
+        "AVAILABLE_ON": "Este recurso ainda não está ativo nesta instalação.",
+        "UPGRADE_PROMPT": "Estamos preparando uma versão própria para a GQuick.",
+        "ASK_ADMIN": "Entre em contato com o administrador do sistema."
       }
     }
   },

@@ -442,20 +442,20 @@
       "CREDIT_NOTE": "As mensagens enviadas aqui usam os créditos do seu Capitão."
     },
     "PAYWALL": {
-      "TITLE": "Atualize para usar o Capitão IA",
-      "AVAILABLE_ON": "O Capitão não está disponível no plano gratuito.",
-      "UPGRADE_PROMPT": "Atualize seu plano para ter acesso aos nossos assistentes, copilotos e muito mais.",
-      "UPGRADE_NOW": "Atualizar agora",
-      "CANCEL_ANYTIME": "Você pode alterar ou cancelar seu plano a qualquer momento"
+      "TITLE": "Capitão IA em preparação",
+      "AVAILABLE_ON": "Estamos preparando uma experiência própria de IA para a GQuick.",
+      "UPGRADE_PROMPT": "Esse recurso será liberado quando estiver pronto para uso operacional.",
+      "UPGRADE_NOW": "Em breve",
+      "CANCEL_ANYTIME": ""
     },
     "ENTERPRISE_PAYWALL": {
-      "AVAILABLE_ON": "O Capitão IA está disponível apenas nos planos Enterprise.",
-      "UPGRADE_PROMPT": "Atualize seu plano para ter acesso aos nossos assistentes, copilotos e muito mais.",
-      "ASK_ADMIN": "Entre em contato com seu administrador para fazer a atualização."
+      "AVAILABLE_ON": "Estamos preparando uma experiência própria de IA para a GQuick.",
+      "UPGRADE_PROMPT": "Esse recurso será liberado quando estiver pronto para uso operacional.",
+      "ASK_ADMIN": "Entre em contato com seu administrador."
     },
     "BANNER": {
-      "RESPONSES": "Você usou mais de 80% do seu limite de respostas. Para continuar usando o Capitão AI, faça o upgrade.",
-      "DOCUMENTS": "Limite de documentos atingido. Atualize para continuar usando o Capitão AI."
+      "RESPONSES": "O limite operacional de respostas de IA está próximo.",
+      "DOCUMENTS": "O limite operacional de documentos de IA foi atingido."
     },
     "FORM": {
       "CANCEL": "Cancelar",
@@ -838,16 +838,16 @@
         "ERROR_MESSAGE": "Falha ao excluir a ferramenta personalizada"
       },
       "PAYWALL": {
-        "TITLE": "Atualize para usar ferramentas com o Capitão",
-        "AVAILABLE_ON": "As ferramentas do Capitão estão disponíveis apenas nos planos Business e Enterprise. Faça upgrade para o plano Business para utilizar esse recurso.",
-        "UPGRADE_PROMPT": "",
-        "UPGRADE_NOW": "Abrir faturamento",
+        "TITLE": "Ferramentas de IA em preparação",
+        "AVAILABLE_ON": "Estamos preparando ferramentas próprias de IA para a GQuick.",
+        "UPGRADE_PROMPT": "Esse recurso será liberado quando estiver pronto para uso operacional.",
+        "UPGRADE_NOW": "Em breve",
         "CANCEL_ANYTIME": ""
       },
       "ENTERPRISE_PAYWALL": {
-        "AVAILABLE_ON": "Ferramentas do Capitão estão disponíveis apenas nos planos pagos.",
-        "UPGRADE_PROMPT": "Por favor, faça o upgrade para um plano pago para utilizar este recurso.",
-        "ASK_ADMIN": "Entre em contato com seu administrador para fazer a atualização."
+        "AVAILABLE_ON": "Estamos preparando ferramentas próprias de IA para a GQuick.",
+        "UPGRADE_PROMPT": "Esse recurso será liberado quando estiver pronto para uso operacional.",
+        "ASK_ADMIN": "Entre em contato com seu administrador."
       },
       "TEST": {
         "BUTTON": "Testar conexão",

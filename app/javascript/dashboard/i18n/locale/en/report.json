@@ -493,11 +493,11 @@
       "UPDATED_BY": "Updated by {name} {time}",
       "UPDATED_BY_LABEL": "Updated by",
       "PAYWALL": {
-        "TITLE": "Upgrade to add review notes",
-        "AVAILABLE_ON": "The review notes feature is only available in the Business and Enterprise plans.",
+        "TITLE": "Review notes are in preparation",
+        "AVAILABLE_ON": "This feature will be available in GQuick when it is ready for production.",
         "UPGRADE_PROMPT": "Add internal context to every CSAT response with review notes. Capture what really happened, spot patterns faster, and make better decisions from your feedback.",
-        "UPGRADE_NOW": "Upgrade now",
-        "CANCEL_ANYTIME": "You can change or cancel your plan anytime"
+        "UPGRADE_NOW": "Coming soon",
+        "CANCEL_ANYTIME": "You can keep using the available reports"
       }
     }
   },

@@ -10,16 +10,16 @@
     "NO_RESULTS": "Nenhuma função personalizada encontrada correspondente à sua busca",
     "SEARCH_404": "Não há itens correspondentes a esta consulta.",
     "PAYWALL": {
-      "TITLE": "Atualize para criar funções personalizadas",
-      "AVAILABLE_ON": "O recurso de função personalizada está disponível apenas nos planos \"Business\" e \"Enterprise\".",
-      "UPGRADE_PROMPT": "Atualize seu plano para obter acesso a recursos avançados como gerenciamento de time, automações, atributos personalizados e muito mais.",
-      "UPGRADE_NOW": "Atualizar agora",
-      "CANCEL_ANYTIME": "Você pode alterar ou cancelar seu plano a qualquer momento"
+      "TITLE": "Funções personalizadas em preparação",
+      "AVAILABLE_ON": "Este recurso será disponibilizado na versão GQuick quando estiver pronto para produção.",
+      "UPGRADE_PROMPT": "Estamos preparando uma experiência própria de permissões para equipes e operações BPO.",
+      "UPGRADE_NOW": "Em breve",
+      "CANCEL_ANYTIME": "Você pode continuar usando as permissões padrão de administrador e agente"
     },
     "ENTERPRISE_PAYWALL": {
-      "AVAILABLE_ON": "O recurso de função personalizada está disponível apenas nos planos pagos.",
-      "UPGRADE_PROMPT": "Atualize para um plano pago para acessar recursos avançados como logs de auditoria, capacidade do agente e muito mais.",
-      "ASK_ADMIN": "Entre em contato com seu administrador para fazer a atualização."
+      "AVAILABLE_ON": "Este recurso ainda não está ativo nesta instalação.",
+      "UPGRADE_PROMPT": "Estamos preparando uma versão própria para a GQuick.",
+      "ASK_ADMIN": "Entre em contato com o administrador do sistema."
     },
     "LIST": {
       "404": "Não há funções personalizadas disponíveis nesta conta.",
