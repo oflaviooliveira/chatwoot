@@ -100,8 +100,10 @@ export function usePolicy() {
       );
     }
 
-    // default to true
-    return true;
+    // In the GQuick Community build, do not surface premium-only pages as
+    // upgrade prompts. Features can still appear when they are explicitly
+    // enabled for the account.
+    return !isPremiumFeature(flag) || isFeatureFlagEnabled(flag);
   };
 
   const shouldShowPaywall = featureFlag => {
