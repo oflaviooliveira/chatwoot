@@ -1,6 +1,9 @@
 {
   "LOGIN": {
-    "TITLE": "Login to Gquicks HUB - Atendimento Web",
+    "TITLE": "Access Gquicks HUB",
+    "HERO_TITLE": "Financial support with clarity, rhythm, and control.",
+    "HERO_SUBTITLE": "Gquicks BPO's service center to organize conversations, requests, and financial routines in one place.",
+    "PANEL_SUBTITLE": "Web Support",
     "EMAIL": {
       "LABEL": "Email",
       "PLACEHOLDER": "example{'@'}companyname.com",

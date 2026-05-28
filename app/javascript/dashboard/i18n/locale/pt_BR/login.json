@@ -1,6 +1,9 @@
 {
   "LOGIN": {
-    "TITLE": "Entrar no Gquicks HUB - Atendimento Web",
+    "TITLE": "Acesse o Gquicks HUB",
+    "HERO_TITLE": "Atendimento financeiro com clareza, ritmo e controle.",
+    "HERO_SUBTITLE": "Central de atendimento da Gquicks BPO para organizar conversas, demandas e rotinas financeiras em um só lugar.",
+    "PANEL_SUBTITLE": "Atendimento Web",
     "EMAIL": {
       "LABEL": "E-mail",
       "PLACEHOLDER": "nome{'@'}empresa.com.br",
@@ -20,7 +23,7 @@
       "BUSINESS_ACCOUNTS_ONLY": "Use o endereço de endereço eletrônico da empresa para fazer ‘login’",
       "NO_ACCOUNT_FOUND": "Não encontramos uma conta para seu endereço de correio eletrônico."
     },
-    "FORGOT_PASSWORD": "Esqueceu-se da sua senha?",
+    "FORGOT_PASSWORD": "Esqueceu sua senha?",
     "CREATE_NEW_ACCOUNT": "Criar nova conta",
     "SUBMIT": "Entrar",
     "SAML": {
