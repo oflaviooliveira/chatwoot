@@ -20,15 +20,15 @@
     },
     "OAUTH": {
       "GOOGLE_LOGIN": "Entrar com o Google",
-      "BUSINESS_ACCOUNTS_ONLY": "Use o endereço de endereço eletrônico da empresa para fazer ‘login’",
-      "NO_ACCOUNT_FOUND": "Não encontramos uma conta para seu endereço de correio eletrônico."
+      "BUSINESS_ACCOUNTS_ONLY": "Use o e-mail da empresa para entrar",
+      "NO_ACCOUNT_FOUND": "Não encontramos uma conta para seu e-mail."
     },
     "FORGOT_PASSWORD": "Esqueceu sua senha?",
     "CREATE_NEW_ACCOUNT": "Criar nova conta",
     "SUBMIT": "Entrar",
     "SAML": {
       "LABEL": "Login via SSO",
-      "TITLE": "Iniciar Single Sign-on (SSO)",
+      "TITLE": "Acessar com SSO",
       "SUBTITLE": "Digite seu e-mail de trabalho para acessar sua organização",
       "BACK_TO_LOGIN": "Login com senha",
       "WORK_EMAIL": {

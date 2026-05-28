@@ -28,7 +28,7 @@
     "SUBMIT": "Entrar",
     "SAML": {
       "LABEL": "Login via SSO",
-      "TITLE": "Iniciar Single Sign-on (SSO)",
+      "TITLE": "Acessar com SSO",
       "SUBTITLE": "Digite seu e-mail de trabalho para acessar sua organização",
       "BACK_TO_LOGIN": "Login com senha",
       "WORK_EMAIL": {
