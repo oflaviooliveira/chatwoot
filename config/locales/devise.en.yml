@@ -18,13 +18,13 @@ en:
       unconfirmed: "You have to confirm your email address before continuing."
     mailer:
       confirmation_instructions:
-        subject: "Confirmation Instructions"
+        subject: "Confirme seu acesso ao Gquicks HUB"
       reset_password_instructions:
-        subject: "Reset password instructions"
+        subject: "Redefina sua senha do Gquicks HUB"
       unlock_instructions:
-        subject: "Unlock instructions"
+        subject: "Instruções para desbloquear seu acesso"
       password_change:
-        subject: "Password Changed"
+        subject: "Senha alterada no Gquicks HUB"
     omniauth_callbacks:
       failure: "Could not authenticate you from %{kind} because \"%{reason}\"."
       success: "Successfully authenticated from %{kind} account."
