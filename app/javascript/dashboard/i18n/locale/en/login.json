@@ -1,43 +1,43 @@
 {
   "LOGIN": {
-    "TITLE": "Access Gquicks HUB",
-    "HERO_TITLE": "Financial support with clarity, rhythm, and control.",
-    "HERO_SUBTITLE": "Gquicks BPO's service center to organize conversations, requests, and financial routines in one place.",
-    "PANEL_SUBTITLE": "Web Support",
+    "TITLE": "Acesse o Gquicks HUB",
+    "HERO_TITLE": "Atendimento financeiro com clareza, ritmo e controle.",
+    "HERO_SUBTITLE": "Central de atendimento da Gquicks BPO para organizar conversas, demandas e rotinas financeiras em um só lugar.",
+    "PANEL_SUBTITLE": "Atendimento Web",
     "EMAIL": {
-      "LABEL": "Email",
-      "PLACEHOLDER": "example{'@'}companyname.com",
-      "ERROR": "Please enter a valid email address"
+      "LABEL": "E-mail",
+      "PLACEHOLDER": "nome{'@'}empresa.com.br",
+      "ERROR": "Por favor, insira um endereço de e-mail válido"
     },
     "PASSWORD": {
-      "LABEL": "Password",
-      "PLACEHOLDER": "Password"
+      "LABEL": "Senha",
+      "PLACEHOLDER": "Senha"
     },
     "API": {
-      "SUCCESS_MESSAGE": "Login successful",
-      "ERROR_MESSAGE": "Could not connect to the system. Please try again.",
-      "UNAUTH": "Username or password is incorrect. Please try again."
+      "SUCCESS_MESSAGE": "Acesso bem-sucedido",
+      "ERROR_MESSAGE": "Não foi possível conectar ao sistema. Por favor, tente novamente mais tarde.",
+      "UNAUTH": "Usuário ou senha incorretos. Por favor, tente novamente."
     },
     "OAUTH": {
-      "GOOGLE_LOGIN": "Login with Google",
-      "BUSINESS_ACCOUNTS_ONLY": "Please use your company email address to login",
-      "NO_ACCOUNT_FOUND": "We couldn't find an account for your email address."
+      "GOOGLE_LOGIN": "Entrar com o Google",
+      "BUSINESS_ACCOUNTS_ONLY": "Use o endereço de e-mail da empresa para entrar",
+      "NO_ACCOUNT_FOUND": "Não encontramos uma conta para seu endereço de e-mail."
     },
-    "FORGOT_PASSWORD": "Forgot your password?",
-    "CREATE_NEW_ACCOUNT": "Create a new account",
-    "SUBMIT": "Login",
+    "FORGOT_PASSWORD": "Esqueceu sua senha?",
+    "CREATE_NEW_ACCOUNT": "Criar nova conta",
+    "SUBMIT": "Entrar",
     "SAML": {
       "LABEL": "Login via SSO",
-      "TITLE": "Initiate Single Sign-on (SSO)",
-      "SUBTITLE": "Enter your work email to access your organization",
-      "BACK_TO_LOGIN": "Login via Password",
+      "TITLE": "Iniciar Single Sign-on (SSO)",
+      "SUBTITLE": "Digite seu e-mail de trabalho para acessar sua organização",
+      "BACK_TO_LOGIN": "Login com senha",
       "WORK_EMAIL": {
-        "LABEL": "Work Email",
-        "PLACEHOLDER": "Enter your work email"
+        "LABEL": "E-mail de trabalho",
+        "PLACEHOLDER": "Digite seu e-mail de trabalho"
       },
-      "SUBMIT": "Continue with SSO",
+      "SUBMIT": "Continuar com SSO",
       "API": {
-        "ERROR_MESSAGE": "SSO authentication failed. Please check your credentials and try again."
+        "ERROR_MESSAGE": "A autenticação SSO falhou. Verifique suas credenciais e tente novamente."
       }
     }
   }
