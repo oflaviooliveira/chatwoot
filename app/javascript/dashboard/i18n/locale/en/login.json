@@ -1,6 +1,6 @@
 {
   "LOGIN": {
-    "TITLE": "Login to Gquicks BPO",
+    "TITLE": "Login to Gquicks HUB - Atendimento Web",
     "EMAIL": {
       "LABEL": "Email",
       "PLACEHOLDER": "example{'@'}companyname.com",

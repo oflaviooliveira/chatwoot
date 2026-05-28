@@ -225,7 +225,7 @@ export default {
     <section class="max-w-5xl mx-auto">
       <img
         src="v3/assets/images/chatgquicks/logo.png"
-        alt="Gquicks BPO"
+        alt="Gquicks HUB - Atendimento Web"
         class="block w-auto h-12 mx-auto"
       />
       <h2 class="mt-6 text-3xl font-medium text-center text-n-slate-12">

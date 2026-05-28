@@ -1,7 +1,7 @@
 class UpdateGquicksBpoBranding < ActiveRecord::Migration[7.1]
   BRANDING_CONFIG = {
-    'INSTALLATION_NAME' => 'Gquicks BPO',
-    'BRAND_NAME' => 'Gquicks BPO',
+    'INSTALLATION_NAME' => 'Gquicks HUB - Atendimento Web',
+    'BRAND_NAME' => 'Gquicks HUB - Atendimento Web',
     'BRAND_URL' => 'https://gquicks.pro',
     'WIDGET_BRAND_URL' => 'https://gquicks.pro',
     'TERMS_URL' => 'https://gquicks.pro',

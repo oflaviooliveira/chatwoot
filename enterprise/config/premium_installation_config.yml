@@ -1,6 +1,6 @@
 # ------- Branding Related Config ------- #
 - name: INSTALLATION_NAME
-  value: 'Gquicks BPO'
+  value: 'Gquicks HUB - Atendimento Web'
 - name: LOGO_THUMBNAIL
   value: '/brand-assets/logo_thumbnail.svg'
 - name: LOGO
@@ -12,7 +12,7 @@
 - name: WIDGET_BRAND_URL
   value: 'https://gquicks.pro'
 - name: BRAND_NAME
-  value: 'Gquicks BPO'
+  value: 'Gquicks HUB - Atendimento Web'
 - name: TERMS_URL
   value: 'https://gquicks.pro'
 - name: PRIVACY_URL
