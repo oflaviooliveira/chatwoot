@@ -1,6 +1,6 @@
 {
   "LOGIN": {
-    "TITLE": "Login to ChatGQuicks",
+    "TITLE": "Login to Gquicks BPO",
     "EMAIL": {
       "LABEL": "Email",
       "PLACEHOLDER": "example{'@'}companyname.com",

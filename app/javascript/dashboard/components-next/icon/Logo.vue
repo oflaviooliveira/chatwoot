@@ -10,6 +10,6 @@ const globalConfig = useMapGetter('globalConfig/get');
   <img
     v-bind="attrs"
     src="dashboard/assets/images/chatgquicks/logo_thumbnail.png"
-    alt="ChatGQuicks"
+    alt="Gquicks BPO"
   />
 </template>
