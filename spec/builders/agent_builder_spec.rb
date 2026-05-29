@@ -67,5 +67,25 @@ RSpec.describe AgentBuilder, type: :model do
         expect(user.encrypted_password).not_to be_empty
       end
     end
+
+    context 'when the Gquicks default inbox exists' do
+      let!(:default_inbox) { create(:inbox, account: account, name: AgentBuilder::DEFAULT_INBOX_NAME) }
+
+      it 'adds a new agent to the default inbox' do
+        user = agent_builder.perform
+
+        expect(default_inbox.members).to include(user)
+      end
+
+      context 'when creating an administrator' do
+        let(:role) { 'administrator' }
+
+        it 'does not add the administrator to the default inbox' do
+          user = agent_builder.perform
+
+          expect(default_inbox.members).not_to include(user)
+        end
+      end
+    end
   end
 end

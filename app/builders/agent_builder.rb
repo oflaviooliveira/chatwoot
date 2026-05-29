@@ -2,6 +2,8 @@
 # It initializes with necessary attributes and provides a perform method
 # to create a user and account user in a transaction.
 class AgentBuilder
+  DEFAULT_INBOX_NAME = 'Gquicks HUB - Atendimento Web'.freeze
+
   # Initializes an AgentBuilder with necessary attributes.
   # @param email [String] the email of the user.
   # @param name [String] the name of the user.
@@ -16,7 +18,8 @@ class AgentBuilder
   def perform
     ActiveRecord::Base.transaction do
       @user = find_or_create_user
-      create_account_user
+      @account_user = create_account_user
+      add_to_default_inbox
     end
     @user
   end
@@ -51,6 +54,16 @@ class AgentBuilder
       availability: availability,
       auto_offline: auto_offline
     }.compact))
+  end
+
+  def add_to_default_inbox
+    return if @account_user.administrator?
+
+    default_inbox = account.inboxes.find_by(name: DEFAULT_INBOX_NAME)
+    return unless default_inbox
+    return if default_inbox.inbox_members.exists?(user_id: @user.id)
+
+    default_inbox.add_members([@user.id])
   end
 end
 
