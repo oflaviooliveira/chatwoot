@@ -2,6 +2,7 @@
 import { h, ref, computed, onMounted } from 'vue';
 import { provideSidebarContext, useSidebarResize } from './provider';
 import { useAccount } from 'dashboard/composables/useAccount';
+import { useAdmin } from 'dashboard/composables/useAdmin';
 import { useKbd } from 'dashboard/composables/utils/useKbd';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useStore } from 'vuex';
@@ -36,7 +37,39 @@ const emit = defineEmits([
   'closeMobileSidebar',
 ]);
 
+const USE_GQUICKS_SIMPLIFIED_SIDEBAR = true;
+const GQUICKS_URGENT_LABEL = 'urgente';
+const GQUICKS_QUEUE_FILTER = {
+  status: 'pending',
+  assignee_type: 'all',
+  order_by: 'last_activity_at_desc',
+};
+const GQUICKS_MY_ATTENDANCE_FILTER = {
+  status: 'all',
+  assignee_type: 'me',
+  order_by: 'last_activity_at_desc',
+};
+const GQUICKS_UNASSIGNED_FILTER = {
+  status: 'pending',
+  assignee_type: 'unassigned',
+  order_by: 'last_activity_at_desc',
+};
+const GQUICKS_ATTENTION_FILTER = {
+  status: 'all',
+  assignee_type: 'all',
+  order_by: 'last_activity_at_desc',
+};
+const GQUICKS_WHATSAPP_GROUP_FILTER = {
+  ...GQUICKS_ATTENTION_FILTER,
+  whatsapp_type: 'group',
+};
+const GQUICKS_WHATSAPP_INDIVIDUAL_FILTER = {
+  ...GQUICKS_ATTENTION_FILTER,
+  whatsapp_type: 'individual',
+};
+
 const { accountScopedRoute, isOnChatwootCloud } = useAccount();
+const { isAdmin } = useAdmin();
 const store = useStore();
 const searchShortcut = useKbd([`$mod`, 'k']);
 const { t } = useI18n();
@@ -211,6 +244,184 @@ const newReportRoutes = () => [
 const reportRoutes = computed(() => newReportRoutes());
 
 const menuItems = computed(() => {
+  if (USE_GQUICKS_SIMPLIFIED_SIDEBAR) {
+    const gquicksUrgentLabel = labels.value.find(
+      label => label.title === GQUICKS_URGENT_LABEL
+    );
+
+    const simplifiedMenuItems = [
+      {
+        name: 'Gquicks Service',
+        label: 'Painel de atendimento',
+        icon: 'i-lucide-headset',
+        children: [
+          {
+            name: 'Gquicks Service Queue',
+            label: 'Fila de atendimento',
+            activeOn: ['inbox_conversation'],
+            to: accountScopedRoute('home', {}, GQUICKS_QUEUE_FILTER),
+          },
+          {
+            name: 'Gquicks My Attendance',
+            label: 'Meus atendimentos',
+            activeOn: ['inbox_conversation'],
+            to: accountScopedRoute('home', {}, GQUICKS_MY_ATTENDANCE_FILTER),
+          },
+          {
+            name: 'Gquicks Unassigned',
+            label: 'Sem responsável',
+            activeOn: ['inbox_conversation'],
+            to: accountScopedRoute('home', {}, GQUICKS_UNASSIGNED_FILTER),
+          },
+          {
+            name: 'Gquicks Urgent',
+            label: 'Urgentes',
+            icon: 'i-lucide-circle-alert',
+            activeOn: ['conversations_through_label'],
+            to: accountScopedRoute(
+              'label_conversations',
+              {
+                label: gquicksUrgentLabel?.title || GQUICKS_URGENT_LABEL,
+              },
+              GQUICKS_ATTENTION_FILTER
+            ),
+          },
+        ],
+      },
+      {
+        name: 'Gquicks Teams',
+        label: 'Setores',
+        icon: 'i-lucide-users',
+        activeOn: ['conversations_through_team'],
+        children: teams.value.map(team => ({
+          name: `${team.name}-${team.id}`,
+          label: team.name,
+          to: accountScopedRoute(
+            'team_conversations',
+            { teamId: team.id },
+            GQUICKS_ATTENTION_FILTER
+          ),
+        })),
+      },
+      {
+        name: 'Gquicks WhatsApp',
+        label: 'WhatsApp',
+        icon: 'i-lucide-message-circle',
+        activeOn: ['inbox_conversation'],
+        children: [
+          {
+            name: 'Gquicks WhatsApp Groups',
+            label: 'Grupos de clientes',
+            icon: 'i-lucide-users-round',
+            activeOn: ['inbox_conversation'],
+            to: accountScopedRoute('home', {}, GQUICKS_WHATSAPP_GROUP_FILTER),
+          },
+          {
+            name: 'Gquicks WhatsApp Individuals',
+            label: 'Conversas individuais',
+            icon: 'i-lucide-user-round',
+            activeOn: ['inbox_conversation'],
+            to: accountScopedRoute(
+              'home',
+              {},
+              GQUICKS_WHATSAPP_INDIVIDUAL_FILTER
+            ),
+          },
+          {
+            name: 'Gquicks WhatsApp All',
+            label: 'Todos os atendimentos',
+            icon: 'i-lucide-message-square-more',
+            activeOn: ['inbox_conversation'],
+            to: accountScopedRoute('home', {}, GQUICKS_ATTENTION_FILTER),
+          },
+        ],
+      },
+      {
+        name: 'Gquicks Contacts',
+        label: 'Clientes',
+        icon: 'i-lucide-contact',
+        to: accountScopedRoute(
+          'contacts_dashboard_index',
+          {},
+          { page: 1, search: undefined }
+        ),
+        activeOn: ['contacts_dashboard_index', 'contacts_edit'],
+      },
+    ];
+
+    if (isAdmin.value) {
+      simplifiedMenuItems.push({
+        name: 'Gquicks Admin',
+        label: 'Administração',
+        icon: 'i-lucide-settings',
+        children: [
+          {
+            name: 'Gquicks Admin Agents',
+            label: 'Agentes',
+            icon: 'i-lucide-square-user',
+            to: accountScopedRoute('agent_list'),
+          },
+          {
+            name: 'Gquicks Admin Teams',
+            label: 'Setores',
+            icon: 'i-lucide-users',
+            activeOn: [
+              'settings_teams_list',
+              'settings_teams_new',
+              'settings_teams_finish',
+              'settings_teams_add_agents',
+              'settings_teams_show',
+              'settings_teams_edit',
+              'settings_teams_edit_members',
+              'settings_teams_edit_finish',
+            ],
+            to: accountScopedRoute('settings_teams_list'),
+          },
+          {
+            name: 'Gquicks Admin Automation',
+            label: 'Automações',
+            icon: 'i-lucide-repeat',
+            to: accountScopedRoute('automation_list'),
+          },
+          {
+            name: 'Gquicks Admin Labels',
+            label: 'Etiquetas',
+            icon: 'i-lucide-tags',
+            to: accountScopedRoute('labels_list'),
+          },
+          {
+            name: 'Gquicks Admin Inbox',
+            label: 'Canais de atendimento',
+            icon: 'i-lucide-mailbox',
+            activeOn: [
+              'settings_inbox_list',
+              'settings_inbox_show',
+              'settings_inbox_new',
+              'settings_inbox_finish',
+              'settings_inboxes_page_channel',
+              'settings_inboxes_add_agents',
+            ],
+            to: accountScopedRoute('settings_inbox_list'),
+          },
+          {
+            name: 'Gquicks Admin Reports',
+            label: 'Relatórios',
+            icon: 'i-lucide-chart-spline',
+            to: accountScopedRoute('account_overview_reports'),
+          },
+          {
+            name: 'Gquicks Admin Account',
+            label: 'Conta',
+            icon: 'i-lucide-briefcase',
+            to: accountScopedRoute('general_settings_index'),
+          },
+        ],
+      });
+    }
+
+    return simplifiedMenuItems;
+  }
+
   return [
     {
       name: 'Inbox',

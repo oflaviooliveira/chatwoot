@@ -123,12 +123,28 @@ const isActive = computed(() => {
   return false;
 });
 
+const queryMatches = to => {
+  const queryEntries = Object.entries(to.query || {}).filter(
+    ([, value]) => value !== undefined
+  );
+  if (!queryEntries.length) return true;
+
+  return queryEntries.every(([key, value]) => {
+    const routeValue = route.query[key];
+    const normalizedRouteValue = Array.isArray(routeValue)
+      ? routeValue[0]
+      : routeValue;
+    return String(normalizedRouteValue) === String(value);
+  });
+};
+
 // We could use the RouterLink isActive too, but our routes are not always
 // nested correctly, so we need to check the active state ourselves
 // TODO: Audit the routes and fix the nesting and remove this
 const activeChild = computed(() => {
   const pathSame = navigableChildren.value.find(
-    child => child.to && route.path === resolvePath(child.to)
+    child =>
+      child.to && route.path === resolvePath(child.to) && queryMatches(child.to)
   );
   if (pathSame) return pathSame;
 
@@ -143,11 +159,13 @@ const activeChild = computed(() => {
 
   if (activeOnPages.length > 0) {
     const rankedPage = activeOnPages.find(child => {
-      return Object.keys(child.to.params)
+      const paramsMatch = Object.keys(child.to.params)
         .map(key => {
           return String(child.to.params[key]) === String(route.params[key]);
         })
         .every(match => match);
+
+      return paramsMatch && queryMatches(child.to);
     });
 
     // If there is no ranked page, return the first activeOn page anyway

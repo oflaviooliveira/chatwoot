@@ -85,6 +85,7 @@ class ConversationFinder
     filter_by_labels
     filter_by_query
     filter_by_source_id
+    filter_by_whatsapp_type
   end
 
   def set_inboxes
@@ -181,6 +182,17 @@ class ConversationFinder
 
     @conversations = @conversations.joins(:contact_inbox)
     @conversations = @conversations.where(contact_inboxes: { source_id: params[:source_id] })
+  end
+
+  def filter_by_whatsapp_type
+    return unless params[:whatsapp_type].in?(%w[group individual])
+
+    @conversations = @conversations.joins(:contact)
+    @conversations = if params[:whatsapp_type] == 'group'
+                       @conversations.where('contacts.identifier LIKE ?', '%@g.us')
+                     else
+                       @conversations.where('contacts.identifier IS NULL OR contacts.identifier NOT LIKE ?', '%@g.us')
+                     end
   end
 
   def set_count_for_all_conversations

@@ -35,8 +35,28 @@ export const filterByUnattended = (
     : shouldFilter;
 };
 
+export const filterByWhatsappType = (
+  shouldFilter,
+  whatsappType,
+  contactIdentifier
+) => {
+  if (!whatsappType) return shouldFilter;
+
+  const isGroup = contactIdentifier?.endsWith('@g.us');
+  return whatsappType === 'group'
+    ? isGroup && shouldFilter
+    : !isGroup && shouldFilter;
+};
+
 export const applyPageFilters = (conversation, filters) => {
-  const { inboxId, status, labels = [], teamId, conversationType } = filters;
+  const {
+    inboxId,
+    status,
+    labels = [],
+    teamId,
+    conversationType,
+    whatsappType,
+  } = filters;
   const {
     status: chatStatus,
     inbox_id: chatInboxId,
@@ -47,6 +67,7 @@ export const applyPageFilters = (conversation, filters) => {
   } = conversation;
   const team = meta.team || {};
   const { id: chatTeamId } = team;
+  const contactIdentifier = meta.sender?.identifier;
 
   let shouldFilter = filterByStatus(chatStatus, status);
   shouldFilter = filterByInbox(shouldFilter, inboxId, chatInboxId);
@@ -57,6 +78,11 @@ export const applyPageFilters = (conversation, filters) => {
     conversationType,
     firstReplyOn,
     waitingSince
+  );
+  shouldFilter = filterByWhatsappType(
+    shouldFilter,
+    whatsappType,
+    contactIdentifier
   );
 
   return shouldFilter;

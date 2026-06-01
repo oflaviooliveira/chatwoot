@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch, inject } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { frontendURL, conversationUrl } from 'dashboard/helper/URLHelper';
 import ConversationCard from './widgets/conversation/ConversationCard.vue';
@@ -19,6 +19,7 @@ const props = defineProps({
 });
 
 const router = useRouter();
+const route = useRoute();
 const store = useStore();
 
 const selectConversation = inject('selectConversation');
@@ -93,6 +94,15 @@ const conversationPath = computed(() =>
   )
 );
 
+const conversationQuery = computed(() => ({ ...route.query }));
+
+const conversationUrlWithQuery = computed(() => {
+  const queryString = new URLSearchParams(conversationQuery.value).toString();
+  return queryString
+    ? `${conversationPath.value}?${queryString}`
+    : conversationPath.value;
+});
+
 const onCardClick = e => {
   const path = conversationPath.value;
   if (!path) return;
@@ -100,7 +110,7 @@ const onCardClick = e => {
   if (e.metaKey || e.ctrlKey) {
     e.preventDefault();
     window.open(
-      `${window.chatwootConfig.hostURL}${path}`,
+      `${window.chatwootConfig.hostURL}${conversationUrlWithQuery.value}`,
       '_blank',
       'noopener,noreferrer'
     );
@@ -108,7 +118,7 @@ const onCardClick = e => {
   }
 
   if (isActiveChat.value) return;
-  router.push({ path });
+  router.push({ path, query: conversationQuery.value });
 };
 
 const onExpandedSelect = checked => {

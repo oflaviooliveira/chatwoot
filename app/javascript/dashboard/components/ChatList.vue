@@ -111,6 +111,79 @@ const currentAccountId = useMapGetter('getCurrentAccountId');
 const getTeamFn = useMapGetter('teams/getTeam');
 const getConversationById = useMapGetter('getConversationById');
 
+const getRouteQueryValue = key => {
+  const value = route.query[key];
+  return Array.isArray(value) ? value[0] : value;
+};
+
+const routeStatusFilter = computed(() => {
+  const status = getRouteQueryValue('status');
+  return Object.values(wootConstants.STATUS_TYPE).includes(status)
+    ? status
+    : undefined;
+});
+
+const routeAssigneeFilter = computed(() => {
+  const assigneeType = getRouteQueryValue('assignee_type');
+  return Object.values(wootConstants.ASSIGNEE_TYPE).includes(assigneeType)
+    ? assigneeType
+    : undefined;
+});
+
+const routeSortFilter = computed(() => {
+  const orderBy = getRouteQueryValue('order_by');
+  return Object.values(wootConstants.SORT_BY_TYPE).includes(orderBy)
+    ? orderBy
+    : undefined;
+});
+
+const routeWhatsappTypeFilter = computed(() => {
+  const whatsappType = getRouteQueryValue('whatsapp_type');
+  return ['group', 'individual'].includes(whatsappType)
+    ? whatsappType
+    : undefined;
+});
+
+const currentViewDefaultFilters = computed(() => {
+  const attentionFilters = {
+    assigneeType: wootConstants.ASSIGNEE_TYPE.ALL,
+    status: wootConstants.STATUS_TYPE.ALL,
+    sortBy: wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC,
+    enforce: true,
+  };
+
+  if (routeWhatsappTypeFilter.value) {
+    return attentionFilters;
+  }
+
+  if (props.conversationInbox || props.teamId || props.label) {
+    return attentionFilters;
+  }
+
+  if (props.conversationType === wootConstants.CONVERSATION_TYPE.UNATTENDED) {
+    return {
+      assigneeType: wootConstants.ASSIGNEE_TYPE.UNASSIGNED,
+      status: wootConstants.STATUS_TYPE.PENDING,
+      sortBy: wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC,
+      enforce: true,
+    };
+  }
+
+  if (
+    props.conversationType === wootConstants.CONVERSATION_TYPE.MENTION ||
+    props.conversationType === wootConstants.CONVERSATION_TYPE.PARTICIPATING
+  ) {
+    return attentionFilters;
+  }
+
+  return {
+    assigneeType: wootConstants.ASSIGNEE_TYPE.ALL,
+    status: wootConstants.STATUS_TYPE.PENDING,
+    sortBy: wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC,
+    enforce: false,
+  };
+});
+
 const {
   selectedConversations,
   selectedInboxes,
@@ -255,6 +328,7 @@ const conversationFilters = computed(() => {
     labels: props.label ? [props.label] : undefined,
     teamId: props.teamId || undefined,
     conversationType: props.conversationType || undefined,
+    whatsappType: routeWhatsappTypeFilter.value,
   };
 });
 
@@ -274,6 +348,12 @@ const pageTitle = computed(() => {
   }
   if (activeTeam.value.name) {
     return activeTeam.value.name;
+  }
+  if (routeWhatsappTypeFilter.value === 'group') {
+    return 'Grupos de clientes';
+  }
+  if (routeWhatsappTypeFilter.value === 'individual') {
+    return 'Conversas individuais';
   }
   if (props.label) {
     return `#${props.label}`;
@@ -364,12 +444,30 @@ const uniqueInboxes = computed(() => {
 function setFiltersFromUISettings() {
   const { conversations_filter_by: filterBy = {} } = uiSettings.value;
   const { status, order_by: orderBy } = filterBy;
-  activeStatus.value = status || wootConstants.STATUS_TYPE.PENDING;
-  activeSortBy.value = Object.values(wootConstants.SORT_BY_TYPE).includes(
-    orderBy
-  )
-    ? orderBy
-    : wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC;
+  const viewDefaults = currentViewDefaultFilters.value;
+  activeStatus.value =
+    (viewDefaults.enforce ? viewDefaults.status : routeStatusFilter.value) ||
+    (viewDefaults.enforce ? undefined : viewDefaults.status) ||
+    status ||
+    wootConstants.STATUS_TYPE.PENDING;
+  activeAssigneeTab.value =
+    (viewDefaults.enforce
+      ? viewDefaults.assigneeType
+      : routeAssigneeFilter.value) ||
+    (viewDefaults.enforce ? undefined : viewDefaults.assigneeType) ||
+    wootConstants.ASSIGNEE_TYPE.ME;
+  activeSortBy.value =
+    (viewDefaults.enforce ? viewDefaults.sortBy : routeSortFilter.value) ||
+    (viewDefaults.enforce ? undefined : viewDefaults.sortBy) ||
+    (Object.values(wootConstants.SORT_BY_TYPE).includes(orderBy)
+      ? orderBy
+      : wootConstants.SORT_BY_TYPE.LAST_ACTIVITY_AT_DESC);
+}
+
+function applyCurrentViewFilters() {
+  setFiltersFromUISettings();
+  store.dispatch('setChatStatusFilter', activeStatus.value);
+  store.dispatch('setChatSortFilter', activeSortBy.value);
 }
 
 function emitConversationLoaded() {
@@ -789,9 +887,7 @@ useEmitter('fetch_conversation_stats', () => {
 
 onMounted(() => {
   store.dispatch('setChatListFilters', conversationFilters.value);
-  setFiltersFromUISettings();
-  store.dispatch('setChatStatusFilter', activeStatus.value);
-  store.dispatch('setChatSortFilter', activeSortBy.value);
+  applyCurrentViewFilters();
   resetAndFetchData();
   if (hasActiveFolders.value) {
     store.dispatch('campaigns/get');
@@ -835,15 +931,36 @@ watch(activeTeam, () => resetAndFetchData());
 
 watch(
   computed(() => props.conversationInbox),
-  () => resetAndFetchData()
+  () => {
+    applyCurrentViewFilters();
+    resetAndFetchData();
+  }
 );
 watch(
   computed(() => props.label),
-  () => resetAndFetchData()
+  () => {
+    applyCurrentViewFilters();
+    resetAndFetchData();
+  }
 );
 watch(
   computed(() => props.conversationType),
-  () => resetAndFetchData()
+  () => {
+    applyCurrentViewFilters();
+    resetAndFetchData();
+  }
+);
+watch(
+  [
+    routeStatusFilter,
+    routeAssigneeFilter,
+    routeSortFilter,
+    routeWhatsappTypeFilter,
+  ],
+  () => {
+    applyCurrentViewFilters();
+    resetAndFetchData();
+  }
 );
 
 watch(activeFolder, (newVal, oldVal) => {

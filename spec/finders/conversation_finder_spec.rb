@@ -147,6 +147,48 @@ describe ConversationFinder do
       end
     end
 
+    context 'with whatsapp_type group' do
+      let(:params) { { status: 'all', assignee_type: 'all', whatsapp_type: 'group' } }
+
+      it 'returns only WhatsApp group conversations' do
+        group_contact = create(:contact, account: account, identifier: '120363391134456952@g.us')
+        group_contact_inbox = create(:contact_inbox, contact: group_contact, inbox: inbox)
+        group_conversation = create(
+          :conversation,
+          account: account,
+          inbox: inbox,
+          contact: group_contact,
+          contact_inbox: group_contact_inbox
+        )
+
+        result = conversation_finder.perform
+
+        expect(result[:conversations].map(&:id)).to contain_exactly(group_conversation.id)
+        expect(result[:count]).to include(all_count: 1)
+      end
+    end
+
+    context 'with whatsapp_type individual' do
+      let(:params) { { status: 'all', assignee_type: 'all', whatsapp_type: 'individual' } }
+
+      it 'excludes WhatsApp group conversations' do
+        group_contact = create(:contact, account: account, identifier: '120363391134456952@g.us')
+        group_contact_inbox = create(:contact_inbox, contact: group_contact, inbox: inbox)
+        create(
+          :conversation,
+          account: account,
+          inbox: inbox,
+          contact: group_contact,
+          contact_inbox: group_contact_inbox
+        )
+
+        result = conversation_finder.perform
+
+        expect(result[:conversations].map { |conversation| conversation.contact.identifier }).not_to include('120363391134456952@g.us')
+        expect(result[:count]).to include(all_count: 5)
+      end
+    end
+
     context 'without source' do
       let(:params) { {} }
 

@@ -14,6 +14,7 @@ class ConversationApi extends ApiClient {
     labels,
     teamId,
     conversationType,
+    whatsappType,
     sortBy,
     updatedWithin,
   }) {
@@ -26,6 +27,7 @@ class ConversationApi extends ApiClient {
         page,
         labels,
         conversation_type: conversationType,
+        whatsapp_type: whatsappType,
         sort_by: sortBy,
         updated_within: updatedWithin,
       },
@@ -96,7 +98,15 @@ class ConversationApi extends ApiClient {
     return axios.post(`${this.url}/${conversationId}/unmute`);
   }
 
-  meta({ inboxId, status, assigneeType, labels, teamId, conversationType }) {
+  meta({
+    inboxId,
+    status,
+    assigneeType,
+    labels,
+    teamId,
+    conversationType,
+    whatsappType,
+  }) {
     return axios.get(`${this.url}/meta`, {
       params: {
         inbox_id: inboxId,
@@ -105,6 +115,7 @@ class ConversationApi extends ApiClient {
         labels,
         team_id: teamId,
         conversation_type: conversationType,
+        whatsapp_type: whatsappType,
       },
     });
   }
