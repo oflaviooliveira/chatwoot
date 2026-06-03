@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class EvolutionApi::WhatsappProfileEnrichmentService
   PROFILE_ATTRIBUTE_KEY = 'whatsapp_profile'.freeze
   SYNC_INTERVAL = 7.days
@@ -163,6 +164,9 @@ class EvolutionApi::WhatsappProfileEnrichmentService
   end
 
   def sync_due?
+    return true if current_profile['jid'].present? && current_profile['jid'] != source_id
+    return true if current_profile['type'].present? && current_profile['type'] != expected_profile_type
+
     last_synced_at = current_profile['synced_at']
     return true if last_synced_at.blank?
 
@@ -196,15 +200,40 @@ class EvolutionApi::WhatsappProfileEnrichmentService
     source_id.to_s.end_with?('@g.us')
   end
 
+  def expected_profile_type
+    group_contact? ? 'group' : 'contact'
+  end
+
   def lid_contact?
     source_id.to_s.end_with?('@lid')
   end
 
   def source_id
-    contact_inbox&.source_id.to_s
+    @source_id ||= source_id_candidates.min_by { |value| source_id_priority(value) }.to_s
+  end
+
+  def source_id_candidates
+    [contact_inbox&.source_id, contact&.identifier, contact&.phone_number].map { |value| value.to_s.strip }.reject(&:blank?)
+  end
+
+  def source_id_priority(value)
+    return 0 if whatsapp_jid?(value)
+    return 1 if phone_like?(value)
+
+    2
+  end
+
+  def whatsapp_jid?(value)
+    value.end_with?('@g.us', '@lid', '@s.whatsapp.net')
+  end
+
+  def phone_like?(value)
+    digits = value.gsub(/\D/, '')
+    digits.length.between?(8, 15)
   end
 
   def client
     @client ||= EvolutionApi::ProfileClient.new
   end
 end
+# rubocop:enable Metrics/ClassLength

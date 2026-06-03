@@ -101,6 +101,23 @@ RSpec.describe EvolutionApi::WhatsappProfileEnrichmentService do
     )
   end
 
+  it 'uses contact identifier when API source id is not a WhatsApp JID' do
+    contact.update!(name: '120363123@g.us', identifier: '120363123@g.us')
+    contact_inbox.update!(source_id: '4ee4074a-3889-4865-92b6-d51553836591')
+    allow(client).to receive(:fetch_group_profile).with('120363123@g.us').and_return(
+      group: { 'subject' => 'Cliente Ana - Diretoria' },
+      profile_picture: {}
+    )
+
+    with_sync_env { service.perform }
+
+    expect(client).to have_received(:fetch_group_profile).with('120363123@g.us')
+    expect(contact.reload.additional_attributes['whatsapp_profile']).to include(
+      'type' => 'group',
+      'jid' => '120363123@g.us'
+    )
+  end
+
   it 'ignores inboxes outside the configured list' do
     allow(client).to receive(:fetch_contact_profile)
 
@@ -125,6 +142,34 @@ RSpec.describe EvolutionApi::WhatsappProfileEnrichmentService do
     with_sync_env { service.perform }
 
     expect(client).not_to have_received(:fetch_contact_profile)
+  end
+
+  it 'syncs again before the interval when saved profile does not match the current WhatsApp identifier' do
+    contact.update!(
+      name: '120363123@g.us',
+      identifier: '120363123@g.us',
+      additional_attributes: {
+        'whatsapp_profile' => {
+          'jid' => '4ee4074a-3889-4865-92b6-d51553836591',
+          'type' => 'contact',
+          'synced_at' => 1.day.ago.iso8601,
+          'source' => 'evolution'
+        }
+      }
+    )
+    contact_inbox.update!(source_id: '4ee4074a-3889-4865-92b6-d51553836591')
+    allow(client).to receive(:fetch_group_profile).with('120363123@g.us').and_return(
+      group: { 'subject' => 'Cliente Ana - Diretoria' },
+      profile_picture: {}
+    )
+
+    with_sync_env { service.perform }
+
+    expect(client).to have_received(:fetch_group_profile).with('120363123@g.us')
+    expect(contact.reload.additional_attributes['whatsapp_profile']).to include(
+      'type' => 'group',
+      'jid' => '120363123@g.us'
+    )
   end
 
   it 'stores errors without raising' do
