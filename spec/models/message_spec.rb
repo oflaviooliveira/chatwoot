@@ -269,6 +269,38 @@ RSpec.describe Message do
       expect(conversation.open?).to be false
       expect(conversation.pending?).to be true
     end
+
+    it 'reopens configured api inbox conversations as pending and clears the assignee' do
+      account = create(:account)
+      inbox = create(:inbox, account: account, channel: build(:channel_api, account: account))
+      assignee = create(:user, account: account)
+      conversation = create(:conversation, account: account, inbox: inbox, assignee: assignee)
+
+      conversation.resolved!
+
+      with_modified_env WHATSAPP_REOPEN_AS_PENDING_INBOX_IDS: inbox.id.to_s do
+        create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming)
+      end
+
+      expect(conversation.reload.pending?).to be true
+      expect(conversation.assignee).to be_nil
+    end
+
+    it 'keeps the default api inbox reopen behavior when the inbox is not configured' do
+      account = create(:account)
+      inbox = create(:inbox, account: account, channel: build(:channel_api, account: account))
+      assignee = create(:user, account: account)
+      conversation = create(:conversation, account: account, inbox: inbox, assignee: assignee)
+
+      conversation.resolved!
+
+      with_modified_env WHATSAPP_REOPEN_AS_PENDING_INBOX_IDS: '999999' do
+        create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming)
+      end
+
+      expect(conversation.reload.open?).to be true
+      expect(conversation.assignee).to eq(assignee)
+    end
   end
 
   describe '#mark_pending_conversation_as_open_for_human_response' do

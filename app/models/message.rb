@@ -426,11 +426,25 @@ class Message < ApplicationRecord
     if conversation.inbox.active_bot?
       conversation.pending!
     elsif conversation.inbox.api?
-      Current.executed_by = sender if reopened_by_contact?
-      conversation.open!
+      reopen_api_conversation
     else
       conversation.open!
     end
+  end
+
+  def reopen_api_conversation
+    Current.executed_by = sender if reopened_by_contact?
+
+    if reopen_api_conversation_as_pending?
+      conversation.update!(status: :pending, assignee_id: nil)
+    else
+      conversation.open!
+    end
+  end
+
+  def reopen_api_conversation_as_pending?
+    inbox_ids = ENV.fetch('WHATSAPP_REOPEN_AS_PENDING_INBOX_IDS', '').split(',').map(&:strip).reject(&:blank?).map(&:to_i)
+    inbox_ids.include?(conversation.inbox_id)
   end
 
   def reopened_by_contact?
