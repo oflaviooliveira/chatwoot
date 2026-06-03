@@ -28,7 +28,7 @@ RSpec.describe EvolutionApi::WhatsappProfileEnrichmentService do
   it 'updates generic contact data with profile information' do
     allow(client).to receive(:fetch_contact_profile).with('5521985294475').and_return(
       profile: { 'pushName' => 'João Pedro' },
-      business_profile: { 'businessName' => 'Cliente Ana', 'description' => 'BPO financeiro' },
+      business_profile: { 'businessName' => 'Cliente Ana', 'description' => 'BPO financeiro', 'email' => 'ana@example.com' },
       profile_picture: { 'profilePictureUrl' => 'https://example.com/avatar.png' }
     )
     allow(Avatar::AvatarFromUrlJob).to receive(:perform_later)
@@ -37,13 +37,19 @@ RSpec.describe EvolutionApi::WhatsappProfileEnrichmentService do
 
     contact.reload
     expect(contact.name).to eq('Cliente Ana')
+    expect(contact.email).to eq('ana@example.com')
     expect(contact.phone_number).to eq('+5521985294475')
+    expect(contact.additional_attributes).to include(
+      'company_name' => 'Cliente Ana',
+      'description' => 'BPO financeiro'
+    )
     expect(contact.additional_attributes['whatsapp_profile']).to include(
       'type' => 'contact',
       'jid' => '5521985294475',
       'profile_name' => 'João Pedro',
       'business_name' => 'Cliente Ana',
       'description' => 'BPO financeiro',
+      'email' => 'ana@example.com',
       'source' => 'evolution',
       'profile_picture_url' => 'https://example.com/avatar.png',
       'last_error' => nil
@@ -63,6 +69,30 @@ RSpec.describe EvolutionApi::WhatsappProfileEnrichmentService do
     with_sync_env { service.perform }
 
     expect(contact.reload.name).to eq('Nome manual do cliente')
+  end
+
+  it 'does not overwrite visible fields filled manually' do
+    contact.update!(
+      email: 'manual@example.com',
+      additional_attributes: {
+        'company_name' => 'Empresa manual',
+        'description' => 'Descricao manual'
+      }
+    )
+    allow(client).to receive(:fetch_contact_profile).and_return(
+      profile: { 'pushName' => 'João Pedro' },
+      business_profile: { 'businessName' => 'Cliente Ana', 'description' => 'BPO financeiro', 'email' => 'ana@example.com' },
+      profile_picture: {}
+    )
+
+    with_sync_env { service.perform }
+
+    contact.reload
+    expect(contact.email).to eq('manual@example.com')
+    expect(contact.additional_attributes).to include(
+      'company_name' => 'Empresa manual',
+      'description' => 'Descricao manual'
+    )
   end
 
   it 'does not set a phone number already used by another contact' do
@@ -92,6 +122,10 @@ RSpec.describe EvolutionApi::WhatsappProfileEnrichmentService do
     contact.reload
     expect(contact.name).to eq('Cliente Ana - Diretoria')
     expect(contact.phone_number).to be_nil
+    expect(contact.additional_attributes).to include(
+      'company_name' => 'Cliente Ana - Diretoria',
+      'description' => 'Grupo oficial do cliente'
+    )
     expect(contact.additional_attributes['whatsapp_profile']).to include(
       'type' => 'group',
       'jid' => '120363123@g.us',

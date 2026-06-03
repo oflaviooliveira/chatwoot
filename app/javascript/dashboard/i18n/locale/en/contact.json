@@ -21,6 +21,19 @@
     "CALL_INITIATED": "Calling the contact…",
     "CALL_FAILED": "Unable to start the call. Please try again.",
     "CLICK_TO_EDIT": "Click to edit",
+    "WHATSAPP_PROFILE": {
+      "TYPE": "Type",
+      "CONTACT": "Contact",
+      "GROUP": "Group",
+      "NAME": "Name",
+      "COMPANY": "Company",
+      "DESCRIPTION": "Description",
+      "PARTICIPANTS": "Participants",
+      "PHONE": "Phone",
+      "EMAIL": "Email",
+      "SYNCED_AT": "Last sync",
+      "EMPTY": "No WhatsApp data found."
+    },
     "VOICE_INBOX_PICKER": {
       "TITLE": "Choose a voice inbox"
     },

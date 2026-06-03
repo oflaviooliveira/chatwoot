@@ -16,6 +16,7 @@ import ConversationParticipant from './ConversationParticipant.vue';
 import ContactInfo from './contact/ContactInfo.vue';
 import ContactNotes from './contact/ContactNotes.vue';
 import ConversationInfo from './ConversationInfo.vue';
+import WhatsAppProfileInfo from './contact/WhatsAppProfileInfo.vue';
 import CustomAttributes from './customAttributes/CustomAttributes.vue';
 import Draggable from 'vuedraggable';
 import MacrosList from './Macros/List.vue';
@@ -43,6 +44,7 @@ const {
 } = useUISettings();
 
 const dragging = ref(false);
+const isWhatsAppProfileOpen = ref(true);
 const conversationSidebarItems = ref([]);
 
 const shopifyIntegration = useFunctionGetter(
@@ -94,6 +96,12 @@ const contact = computed(() => contactGetter.value(contactId.value));
 const contactAdditionalAttributes = computed(
   () => contact.value.additional_attributes || {}
 );
+const whatsAppProfile = computed(
+  () => contactAdditionalAttributes.value.whatsapp_profile || {}
+);
+const hasWhatsAppProfile = computed(
+  () => Object.keys(whatsAppProfile.value).length > 0
+);
 
 const getContactDetails = () => {
   if (contactId.value) {
@@ -138,6 +146,16 @@ onMounted(() => {
     />
     <ContactInfo :contact="contact" :channel-type="channelType" />
     <div class="px-2 pb-8 list-group">
+      <AccordionItem
+        v-if="hasWhatsAppProfile"
+        :title="$t('CONVERSATION_SIDEBAR.ACCORDION.WHATSAPP_PROFILE')"
+        :is-open="isWhatsAppProfileOpen"
+        compact
+        class="mb-3"
+        @toggle="isWhatsAppProfileOpen = !isWhatsAppProfileOpen"
+      >
+        <WhatsAppProfileInfo :profile="whatsAppProfile" />
+      </AccordionItem>
       <Draggable
         :list="conversationSidebarItems"
         animation="200"

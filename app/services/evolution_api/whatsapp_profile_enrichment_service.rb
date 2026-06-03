@@ -34,19 +34,34 @@ class EvolutionApi::WhatsappProfileEnrichmentService
   def contact_update_attributes(profile)
     attrs = {}
     attrs[:name] = profile[:display_name] if should_update_name?(profile[:display_name])
+    attrs[:email] = profile[:email] if should_update_email?(profile[:email])
     attrs[:phone_number] = profile[:phone_number] if should_update_phone_number?(profile[:phone_number])
     attrs[:additional_attributes] = merged_additional_attributes(profile)
     attrs
   end
 
   def merged_additional_attributes(profile)
-    (contact.additional_attributes || {}).merge(
+    visible_attributes_from_profile(profile).merge(
       PROFILE_ATTRIBUTE_KEY => profile.compact.stringify_keys.merge(
         'source' => 'evolution',
         'synced_at' => Time.current.iso8601,
         'last_error' => nil
       )
     )
+  end
+
+  def visible_attributes_from_profile(profile)
+    attrs = contact.additional_attributes || {}
+    company_name = profile_company_name(profile)
+
+    attrs = attrs.merge('company_name' => company_name) if should_update_visible_attribute?('company_name', company_name)
+    attrs = attrs.merge('description' => profile[:description]) if should_update_visible_attribute?('description', profile[:description])
+    attrs
+  end
+
+  def profile_company_name(profile)
+    return profile[:business_name] if profile[:business_name].present?
+    return profile[:display_name] if profile[:type] == 'group'
   end
 
   def normalize_profile(profile_data)
@@ -134,8 +149,20 @@ class EvolutionApi::WhatsappProfileEnrichmentService
     candidate_phone_number.present? && contact.phone_number.blank? && phone_number_available?(candidate_phone_number)
   end
 
+  def should_update_email?(candidate_email)
+    candidate_email.present? && contact.email.blank? && Devise.email_regexp.match?(candidate_email) && email_available?(candidate_email)
+  end
+
+  def should_update_visible_attribute?(attribute_key, candidate_value)
+    candidate_value.present? && contact.additional_attributes.to_h[attribute_key].blank?
+  end
+
   def phone_number_available?(candidate_phone_number)
     !Contact.where(account_id: contact.account_id, phone_number: candidate_phone_number).where.not(id: contact.id).exists?
+  end
+
+  def email_available?(candidate_email)
+    !Contact.where(account_id: contact.account_id, email: candidate_email).where.not(id: contact.id).exists?
   end
 
   def normalized_phone_number
