@@ -34,6 +34,11 @@
       "SYNCED_AT": "Last sync",
       "EMPTY": "No WhatsApp data found."
     },
+    "CLIENT_MANAGEMENT": {
+      "PRIMARY_OWNER": "Primary owner",
+      "OPERATIONAL_SUPPORT": "Operational support",
+      "NOT_SET": "Not set"
+    },
     "VOICE_INBOX_PICKER": {
       "TITLE": "Choose a voice inbox"
     },

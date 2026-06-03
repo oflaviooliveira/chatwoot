@@ -16,6 +16,7 @@ import ConversationParticipant from './ConversationParticipant.vue';
 import ContactInfo from './contact/ContactInfo.vue';
 import ContactNotes from './contact/ContactNotes.vue';
 import ConversationInfo from './ConversationInfo.vue';
+import ClientManagementInfo from './contact/ClientManagementInfo.vue';
 import WhatsAppProfileInfo from './contact/WhatsAppProfileInfo.vue';
 import CustomAttributes from './customAttributes/CustomAttributes.vue';
 import Draggable from 'vuedraggable';
@@ -45,6 +46,7 @@ const {
 
 const dragging = ref(false);
 const isWhatsAppProfileOpen = ref(true);
+const isClientManagementOpen = ref(true);
 const conversationSidebarItems = ref([]);
 
 const shopifyIntegration = useFunctionGetter(
@@ -96,6 +98,9 @@ const contact = computed(() => contactGetter.value(contactId.value));
 const contactAdditionalAttributes = computed(
   () => contact.value.additional_attributes || {}
 );
+const contactCustomAttributes = computed(
+  () => contact.value.custom_attributes || {}
+);
 const whatsAppProfile = computed(
   () => contactAdditionalAttributes.value.whatsapp_profile || {}
 );
@@ -146,6 +151,16 @@ onMounted(() => {
     />
     <ContactInfo :contact="contact" :channel-type="channelType" />
     <div class="px-2 pb-8 list-group">
+      <AccordionItem
+        v-if="contact.id"
+        :title="$t('CONVERSATION_SIDEBAR.ACCORDION.CLIENT_MANAGEMENT')"
+        :is-open="isClientManagementOpen"
+        compact
+        class="mb-3"
+        @toggle="isClientManagementOpen = !isClientManagementOpen"
+      >
+        <ClientManagementInfo :custom-attributes="contactCustomAttributes" />
+      </AccordionItem>
       <AccordionItem
         v-if="hasWhatsAppProfile"
         :title="$t('CONVERSATION_SIDEBAR.ACCORDION.WHATSAPP_PROFILE')"
