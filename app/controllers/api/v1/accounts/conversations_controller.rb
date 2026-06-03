@@ -37,10 +37,12 @@ class Api::V1::Accounts::ConversationsController < Api::V1::Accounts::BaseContro
   def show; end
 
   def create
+    created_message = nil
     ActiveRecord::Base.transaction do
       @conversation = ConversationBuilder.new(params: params, contact_inbox: @contact_inbox).perform
-      Messages::MessageBuilder.new(Current.user, @conversation, params[:message]).perform if params[:message].present?
+      created_message = Messages::MessageBuilder.new(Current.user, @conversation, params[:message]).perform if params[:message].present?
     end
+    Whatsapp::ProfileEnrichmentJob.enqueue_for_message(created_message)
   end
 
   def update

@@ -9,6 +9,7 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
     user = Current.user || @resource
     mb = Messages::MessageBuilder.new(user, @conversation, params)
     @message = mb.perform
+    Whatsapp::ProfileEnrichmentJob.enqueue_for_message(@message)
   rescue StandardError => e
     render_could_not_create_error(e.message)
   end
