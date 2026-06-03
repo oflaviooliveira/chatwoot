@@ -27,12 +27,28 @@ class EvolutionApi::ProfileClient
     return {} if group_jid.blank?
 
     {
-      group: safe_post("/group/findGroupInfos/#{@instance_name}", groupJid: group_jid),
+      group: safe_get("/group/findGroupInfos/#{@instance_name}", groupJid: group_jid),
       profile_picture: safe_post("/chat/fetchProfilePictureUrl/#{@instance_name}", number: group_jid)
     }.compact
   end
 
   private
+
+  def safe_get(path, query)
+    response = HTTParty.get(
+      "#{@api_url}#{path}",
+      headers: headers,
+      query: query,
+      timeout: TIMEOUT
+    )
+    return response.parsed_response if response.success?
+
+    Rails.logger.warn("EvolutionApi::ProfileClient #{path} failed with #{response.code}: #{response.body}")
+    nil
+  rescue StandardError => e
+    Rails.logger.warn("EvolutionApi::ProfileClient #{path} failed: #{e.class} - #{e.message}")
+    nil
+  end
 
   def safe_post(path, payload)
     response = HTTParty.post(

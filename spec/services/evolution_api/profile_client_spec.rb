@@ -70,10 +70,10 @@ RSpec.describe EvolutionApi::ProfileClient do
 
   describe '#fetch_group_profile' do
     it 'fetches group info and picture' do
-      allow(HTTParty).to receive(:post)
+      allow(HTTParty).to receive(:get)
         .with(
           'https://evolution.example.com/group/findGroupInfos/gquick-atendimento',
-          hash_including(body: { groupJid: '120363123@g.us' }.to_json)
+          hash_including(query: { groupJid: '120363123@g.us' })
         ).and_return(response({ 'subject' => 'Cliente Ana - Diretoria' }))
       allow(HTTParty).to receive(:post)
         .with(
