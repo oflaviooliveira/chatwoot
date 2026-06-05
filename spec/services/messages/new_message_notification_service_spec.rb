@@ -111,5 +111,43 @@ describe Messages::NewMessageNotificationService do
                                             secondary_actor: message)).not_to exist
       end
     end
+
+    context 'when an incoming message is created in an unassigned WhatsApp inbox' do
+      let(:conversation) { create(:conversation, account: account, inbox: inbox, assignee: nil) }
+      let(:message) { create(:message, conversation: conversation, account: account) }
+
+      before do
+        conversation.conversation_participants.destroy_all
+      end
+
+      it 'creates notifications for inbox members when the inbox is configured' do
+        with_modified_env WHATSAPP_NOTIFY_UNASSIGNED_INBOX_IDS: inbox.id.to_s do
+          described_class.new(message: message).perform
+        end
+
+        expect(participating_agent_1.notifications.where(notification_type: 'participating_conversation_new_message',
+                                                         account: account, primary_actor: message.conversation,
+                                                         secondary_actor: message)).to exist
+        expect(participating_agent_2.notifications.where(notification_type: 'participating_conversation_new_message',
+                                                         account: account, primary_actor: message.conversation,
+                                                         secondary_actor: message)).to exist
+        expect(assignee.notifications.where(notification_type: 'participating_conversation_new_message',
+                                            account: account, primary_actor: message.conversation,
+                                            secondary_actor: message)).to exist
+      end
+
+      it 'does not notify inbox members when the inbox is not configured' do
+        with_modified_env WHATSAPP_NOTIFY_UNASSIGNED_INBOX_IDS: '999999' do
+          described_class.new(message: message).perform
+        end
+
+        expect(participating_agent_1.notifications.where(notification_type: 'participating_conversation_new_message',
+                                                         account: account, primary_actor: message.conversation,
+                                                         secondary_actor: message)).not_to exist
+        expect(participating_agent_2.notifications.where(notification_type: 'participating_conversation_new_message',
+                                                         account: account, primary_actor: message.conversation,
+                                                         secondary_actor: message)).not_to exist
+      end
+    end
   end
 end
