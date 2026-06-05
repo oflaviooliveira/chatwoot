@@ -1,6 +1,7 @@
 {
-  "name": "Chatwoot",
-  "short_name": "Chatwoot",
+  "name": "Gquicks HUB - Atendimento Web",
+  "short_name": "Gquicks HUB",
+  "description": "Central de atendimento da Gquicks BPO.",
   "icons": [{
     "src": "\/android-icon-36x36.png",
     "sizes": "36x36",
@@ -36,9 +37,17 @@
     "sizes": "192x192",
     "type": "image\/png",
     "density": "4.0"
+   },
+   {
+    "src": "\/favicon-512x512.png",
+    "sizes": "512x512",
+    "type": "image\/png",
+    "purpose": "any"
    }],
-  "start_url": "/",
+  "start_url": "/app",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1f93ff",
-  "theme_color": "#1f93ff"
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#070b2f"
 }
