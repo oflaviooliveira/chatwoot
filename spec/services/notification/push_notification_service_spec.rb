@@ -23,9 +23,20 @@ describe Notification::PushNotificationService do
           create(:notification_subscription, user: notification.user)
 
           described_class.new(notification: notification).perform
-          expect(WebPush).to have_received(:payload_send)
+          expect(WebPush).to have_received(:payload_send).with(
+            hash_including(
+              message: satisfy do |message|
+                JSON.parse(message).slice('title', 'body', 'icon', 'badge') == {
+                  'title' => 'Nova mensagem no Gquicks HUB',
+                  'body' => 'Abra o atendimento para responder.',
+                  'icon' => '/android-icon-192x192.png',
+                  'badge' => '/favicon-badge-96x96.png'
+                }
+              end
+            )
+          )
           expect(Notification::FcmService).not_to have_received(:new)
-          expect(Rails.logger).to have_received(:info).with("Browser push sent to #{user.email} with title #{notification.push_message_title}")
+          expect(Rails.logger).to have_received(:info).with("Browser push sent to #{user.email} with title Nova mensagem no Gquicks HUB")
         end
       end
 

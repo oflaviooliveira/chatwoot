@@ -1,6 +1,11 @@
 class Notification::PushNotificationService
   include Rails.application.routes.url_helpers
 
+  BROWSER_PUSH_TITLE = 'Nova mensagem no Gquicks HUB'.freeze
+  BROWSER_PUSH_BODY = 'Abra o atendimento para responder.'.freeze
+  BROWSER_PUSH_ICON = '/android-icon-192x192.png'.freeze
+  BROWSER_PUSH_BADGE = '/favicon-badge-96x96.png'.freeze
+
   pattr_initialize [:notification!]
 
   def perform
@@ -32,7 +37,10 @@ class Notification::PushNotificationService
 
   def push_message
     {
-      title: notification.push_message_title,
+      title: BROWSER_PUSH_TITLE,
+      body: BROWSER_PUSH_BODY,
+      icon: BROWSER_PUSH_ICON,
+      badge: BROWSER_PUSH_BADGE,
       tag: "#{notification.notification_type}_#{conversation.display_id}_#{notification.id}",
       url: push_url
     }
