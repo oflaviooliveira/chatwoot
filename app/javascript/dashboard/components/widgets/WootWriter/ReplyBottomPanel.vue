@@ -217,6 +217,12 @@ export default {
         return this.ALLOWED_FILE_TYPES;
       }
 
+      // The Gquicks WhatsApp inbox runs as an API channel via Evolution.
+      // Keep the native mobile file picker broad enough for iOS/PWA uploads.
+      if (this.isAPIInbox) {
+        return this.ALLOWED_FILE_TYPES;
+      }
+
       let channelType = this.channelType || this.inbox?.channel_type;
 
       if (this.isAnInstagramChannel || this.isInstagramDM) {
@@ -246,7 +252,7 @@ export default {
     },
     showMessageSignatureButton() {
       if (this.isEditorDisabled) return false;
-      return !this.isOnPrivateNote;
+      return !this.isOnPrivateNote && !this.isAPIInbox;
     },
     sendWithSignature() {
       // channelType is sourced from inboxMixin
@@ -273,6 +279,15 @@ export default {
     ActiveStorage.start();
   },
   methods: {
+    openFilePicker() {
+      if (this.isEditorDisabled) return;
+
+      const uploadInput =
+        this.$refs.uploadRef?.$el?.querySelector('input[type="file"]') ||
+        document.querySelector('#conversationAttachment');
+
+      uploadInput?.click();
+    },
     toggleMessageSignature() {
       this.setSignatureFlagForInbox(this.channelType, !this.sendWithSignature);
     },
@@ -318,6 +333,8 @@ export default {
           slate
           faded
           sm
+          type="button"
+          @click.stop.prevent="openFilePicker"
         />
       </FileUpload>
       <NextButton

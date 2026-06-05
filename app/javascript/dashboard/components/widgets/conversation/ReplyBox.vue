@@ -341,7 +341,7 @@ export default {
       );
     },
     isSignatureEnabledForInbox() {
-      return !this.isPrivate && this.sendWithSignature;
+      return !this.isPrivate && !this.isAPIInbox && this.sendWithSignature;
     },
     isSignatureAvailable() {
       return !!this.messageSignature;
