@@ -1442,10 +1442,11 @@ export default {
 }
 
 .reply-box {
-  @apply relative mb-2 mx-2 border border-n-weak rounded-xl bg-n-solid-1;
+  @apply relative mx-3 mb-3 border-0 rounded-[1.75rem] bg-white shadow-[0_1px_4px_rgba(17,24,39,0.12)];
+  min-height: 3.25rem;
 
   &.is-private {
-    @apply bg-n-solid-amber dark:border-n-amber-3/10 border-n-amber-12/5;
+    @apply bg-n-solid-amber;
   }
 }
 
@@ -1454,7 +1455,21 @@ export default {
 }
 
 .reply-box__top {
-  @apply relative py-0 px-3 -mt-px;
+  @apply relative py-0 px-4 -mt-px;
+}
+
+.reply-box :deep(.message-editor) {
+  min-height: 2.75rem;
+}
+
+.reply-box :deep(.ProseMirror) {
+  padding-top: 0.875rem;
+  padding-bottom: 0.75rem;
+}
+
+.reply-box :deep(.button),
+.reply-box :deep(button) {
+  border-radius: 9999px;
 }
 
 .emoji-dialog {

@@ -471,7 +471,7 @@ export default {
     </div>
     <MessageList
       ref="conversationPanelRef"
-      class="conversation-panel flex-shrink flex-grow basis-px flex flex-col overflow-y-auto relative h-full m-0 pb-4"
+      class="conversation-panel gquick-whatsapp-thread flex-shrink flex-grow basis-px flex flex-col overflow-y-auto relative h-full m-0 pb-4"
       :current-user-id="currentUserId"
       :first-unread-id="unReadMessages[0]?.id"
       :is-an-email-channel="isAnEmailChannel"
@@ -510,7 +510,7 @@ export default {
         />
       </template>
     </MessageList>
-    <div class="flex relative flex-col bg-n-surface-1">
+    <div class="gquick-whatsapp-composer flex relative flex-col bg-n-surface-1">
       <div
         v-if="isAnyoneTyping"
         class="absolute flex items-center w-full h-0 -top-7"
@@ -535,3 +535,54 @@ export default {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.gquick-whatsapp-thread {
+  background-color: #f7f1e8;
+  background-image: url("data:image/svg+xml,%3Csvg width='220' height='220' viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23d9c8aa' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round' opacity='.28'%3E%3Cpath d='M18 35h22v17H18zM25 35v-8h8v8M72 26c10 0 18 8 18 18s-8 18-18 18-18-8-18-18 8-18 18-18zM66 43h12M72 37v12M127 30c8 0 14 5 14 12s-6 12-14 12h-5l-10 8 3-11c-4-2-7-6-7-11 0-7 8-10 19-10zM170 31l18 18M188 31l-18 18M26 92c14-16 35-14 48 0M38 93c7-7 16-7 23 0M49 96h1M111 86l10 19 21 3-15 15 4 21-20-10-19 10 4-21-16-15 22-3zM171 92h32v22h-32zM179 114v9h16v-9M28 154c0-11 9-20 20-20h5c11 0 20 9 20 20s-9 20-20 20h-5c-11 0-20-9-20-20zM43 154h15M103 150h41M103 162h31M168 146c8-9 23-5 23 8 0 15-23 25-23 25s-23-10-23-25c0-13 15-17 23-8zM55 206l17-17M72 206l-17-17M118 190c7 0 13 6 13 13s-6 13-13 13-13-6-13-13 6-13 13-13zM113 203h10'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 220px 220px;
+}
+
+.gquick-whatsapp-thread::before {
+  content: '';
+  position: sticky;
+  top: 0;
+  z-index: 0;
+  display: block;
+  height: 0;
+}
+
+.gquick-whatsapp-thread :deep(.message-bubble-container) {
+  position: relative;
+  z-index: 1;
+  padding-left: clamp(0.75rem, 4vw, 4rem);
+  padding-right: clamp(0.75rem, 4vw, 4rem);
+}
+
+.gquick-whatsapp-thread :deep(.message-bubble-container:first-of-type) {
+  margin-top: auto;
+}
+
+.gquick-whatsapp-thread :deep(.left-bubble),
+.gquick-whatsapp-thread :deep(.right-bubble) {
+  max-width: min(38rem, 76vw) !important;
+  color: #111b21;
+  border-radius: 1rem;
+  box-shadow: 0 1px 1px rgba(17, 24, 39, 0.1);
+}
+
+.gquick-whatsapp-thread :deep(.left-bubble) {
+  border-bottom-left-radius: 0.25rem;
+  background: #fff;
+}
+
+.gquick-whatsapp-thread :deep(.right-bubble) {
+  border-bottom-right-radius: 0.25rem;
+  background: #d9fdd3;
+}
+
+.gquick-whatsapp-composer {
+  border-top: 1px solid rgba(17, 24, 39, 0.06);
+  background: #f7f1e8;
+}
+</style>
