@@ -19,6 +19,8 @@ export const DEFAULT_CONTACT_SIDEBAR_ITEMS_ORDER = Object.freeze([
   { name: 'previous_conversation' },
 ]);
 
+const DEFAULT_SIGNATURE_ENABLED_CHANNELS = Object.freeze(['Channel::Api']);
+
 /**
  * Slugifies the channel name.
  * Replaces spaces, hyphens, and double colons with underscores.
@@ -104,7 +106,18 @@ const fetchSignatureFlagFromUISettings = (channelType, uiSettings) => {
   if (!channelType) return false;
 
   const slugifiedChannel = slugifyChannel(channelType);
-  return uiSettings.value[`${slugifiedChannel}_signature_enabled`];
+  const signatureEnabled =
+    uiSettings.value[`${slugifiedChannel}_signature_enabled`];
+
+  if (signatureEnabled !== undefined) {
+    return signatureEnabled;
+  }
+
+  if (DEFAULT_SIGNATURE_ENABLED_CHANNELS.includes(channelType)) {
+    return true;
+  }
+
+  return signatureEnabled;
 };
 
 const fetchQuotedReplyFlagFromUISettings = (channelType, uiSettings) => {

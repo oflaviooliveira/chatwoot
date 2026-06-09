@@ -341,10 +341,15 @@ export default {
       );
     },
     isSignatureEnabledForInbox() {
-      return !this.isPrivate && !this.isAPIInbox && this.sendWithSignature;
+      return !this.isPrivate && this.sendWithSignature;
     },
     isSignatureAvailable() {
-      return !!this.messageSignature;
+      return !!this.effectiveMessageSignature;
+    },
+    effectiveMessageSignature() {
+      return (
+        this.messageSignature || (this.isAPIInbox ? this.currentUser?.name : '')
+      );
     },
     sendWithSignature() {
       return this.fetchSignatureFlagFromUISettings(this.channelType);
@@ -640,9 +645,21 @@ export default {
         this.inbox?.medium || ''
       );
 
+      if (this.sendWithSignature && !this.effectiveMessageSignature) {
+        return message;
+      }
+
       return this.sendWithSignature
-        ? appendSignature(message, this.messageSignature, effectiveChannelType)
-        : removeSignature(message, this.messageSignature, effectiveChannelType);
+        ? appendSignature(
+            message,
+            this.effectiveMessageSignature,
+            effectiveChannelType
+          )
+        : removeSignature(
+            message,
+            this.effectiveMessageSignature,
+            effectiveChannelType
+          );
     },
     removeFromDraft() {
       if (this.conversationIdByRoute) {
@@ -810,14 +827,18 @@ export default {
       const normalizeForComparison = message => {
         let normalizedMessage = message || '';
 
-        if (this.sendWithSignature && this.messageSignature && !isPrivate) {
+        if (
+          this.sendWithSignature &&
+          this.effectiveMessageSignature &&
+          !isPrivate
+        ) {
           const effectiveChannelType = getEffectiveChannelType(
             this.channelType,
             this.inbox?.medium || ''
           );
           normalizedMessage = removeSignature(
             normalizedMessage,
-            this.messageSignature,
+            this.effectiveMessageSignature,
             effectiveChannelType
           );
         }
@@ -938,7 +959,11 @@ export default {
     clearMessage() {
       this.message = '';
       this.clearCopilotAcceptedMessage();
-      if (this.sendWithSignature && !this.isPrivate) {
+      if (
+        this.sendWithSignature &&
+        this.effectiveMessageSignature &&
+        !this.isPrivate
+      ) {
         // if signature is enabled, append it to the message
         const effectiveChannelType = getEffectiveChannelType(
           this.channelType,
@@ -946,7 +971,7 @@ export default {
         );
         this.message = appendSignature(
           this.message,
-          this.messageSignature,
+          this.effectiveMessageSignature,
           effectiveChannelType
         );
       }
@@ -1314,7 +1339,7 @@ export default {
           :disabled="isEditorDisabled"
           enable-variables
           :variables="messageVariables"
-          :signature="messageSignature"
+          :signature="effectiveMessageSignature"
           allow-signature
           :channel-type="channelType"
           :medium="inbox.medium"

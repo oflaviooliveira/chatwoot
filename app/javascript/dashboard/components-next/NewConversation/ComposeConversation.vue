@@ -74,6 +74,13 @@ const inboxesList = useMapGetter('inboxes/getInboxes');
 const sendWithSignature = computed(() =>
   fetchSignatureFlagFromUISettings(targetInbox.value?.channelType)
 );
+const effectiveMessageSignature = computed(() => {
+  const targetInboxChannelType = targetInbox.value?.channelType;
+  return (
+    messageSignature.value ||
+    (targetInboxChannelType === 'Channel::Api' ? currentUser.value?.name : '')
+  );
+});
 
 const directUploadsEnabled = computed(
   () => globalConfig.value.directUploadsEnabled
@@ -254,7 +261,7 @@ onMounted(() => resetContacts());
         :is-direct-uploads-enabled="directUploadsEnabled"
         :contact-conversations-ui-flags="uiFlags"
         :contacts-ui-flags="contactsUiFlags"
-        :message-signature="messageSignature"
+        :message-signature="effectiveMessageSignature"
         :send-with-signature="sendWithSignature"
         @search-contacts="onContactSearch"
         @reset-contact-search="resetContacts"
