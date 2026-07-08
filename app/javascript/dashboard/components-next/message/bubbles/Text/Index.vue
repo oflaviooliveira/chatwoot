@@ -7,6 +7,7 @@ import TranslationToggle from 'dashboard/components-next/message/TranslationTogg
 import { MESSAGE_TYPES } from '../../constants';
 import { useMessageContext } from '../../provider.js';
 import { useTranslations } from 'dashboard/composables/useTranslations';
+import { renderWhatsappMentions } from 'dashboard/helper/whatsappGroupMentions';
 
 const { content, attachments, contentAttributes, messageType } =
   useMessageContext();
@@ -17,15 +18,34 @@ const { hasTranslations, translationContent } =
 const renderOriginal = ref(false);
 
 const renderContent = computed(() => {
-  if (renderOriginal.value) {
+  const contentToRender = (() => {
+    if (renderOriginal.value) {
+      return content.value;
+    }
+
+    if (hasTranslations.value) {
+      return translationContent.value;
+    }
+
     return content.value;
-  }
+  })();
 
-  if (hasTranslations.value) {
-    return translationContent.value;
-  }
+  return renderWhatsappMentions(contentToRender, contentAttributes.value);
+});
 
-  return content.value;
+const whatsappGroupSender = computed(() => {
+  return (
+    contentAttributes.value?.whatsappGroupSender ||
+    contentAttributes.value?.whatsapp_group_sender ||
+    null
+  );
+});
+
+const whatsappGroupSenderLabel = computed(() => {
+  const sender = whatsappGroupSender.value;
+  if (!sender) return '';
+
+  return sender.label || sender.name || sender.phone || sender.jid || '';
 });
 
 const isTemplate = computed(() => {
@@ -44,6 +64,12 @@ const handleSeeOriginal = () => {
 <template>
   <BaseBubble class="px-4 py-3" data-bubble-name="text">
     <div class="gap-3 flex flex-col">
+      <span
+        v-if="whatsappGroupSenderLabel"
+        class="-mb-2 text-xs font-medium text-n-slate-11"
+      >
+        {{ whatsappGroupSenderLabel }}
+      </span>
       <span v-if="isEmpty" class="text-n-slate-11">
         {{ $t('CONVERSATION.NO_CONTENT') }}
       </span>

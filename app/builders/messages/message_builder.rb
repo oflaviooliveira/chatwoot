@@ -13,6 +13,9 @@ class Messages::MessageBuilder
     @account = conversation.account
     @message_type = params[:message_type] || 'outgoing'
     @attachments = params[:attachments]
+    @content = params[:content]
+    @content_attributes = parse_content_attributes
+    normalize_whatsapp_group_message
     @automation_rule = content_attributes&.dig(:automation_rule_id)
     return unless params.instance_of?(ActionController::Parameters)
 
@@ -38,6 +41,10 @@ class Messages::MessageBuilder
   # - Attempts to parse a JSON string if content is a string.
   # - Returns an empty hash if content is not present, if there's a parsing error, or if it's an unexpected type.
   def content_attributes
+    @content_attributes
+  end
+
+  def parse_content_attributes
     params = convert_to_hash(@params)
     content_attributes = params.fetch(:content_attributes, {})
 
@@ -45,6 +52,18 @@ class Messages::MessageBuilder
     return content_attributes if content_attributes.is_a?(Hash)
 
     {}
+  end
+
+  def normalize_whatsapp_group_message
+    normalized_payload = Whatsapp::GroupMessageNormalizer.new(
+      conversation: @conversation,
+      message_type: @message_type,
+      content: @content,
+      content_attributes: @content_attributes
+    ).perform
+
+    @content = normalized_payload[:content]
+    @content_attributes = normalized_payload[:content_attributes]
   end
 
   def process_attachments
@@ -134,7 +153,7 @@ class Messages::MessageBuilder
       account_id: @conversation.account_id,
       inbox_id: @conversation.inbox_id,
       message_type: message_type,
-      content: @params[:content],
+      content: @content,
       private: @private,
       sender: sender,
       content_type: @params[:content_type],

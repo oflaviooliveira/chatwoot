@@ -121,6 +121,113 @@ describe Messages::MessageBuilder do
       end
     end
 
+    context 'when an Evolution API group message includes sender and mention text' do
+      let(:channel_api) { create(:channel_api, account: account) }
+      let(:group_contact) { create(:contact, account: account, identifier: '120363123@g.us') }
+      let(:group_contact_inbox) do
+        create(
+          :contact_inbox,
+          contact: group_contact,
+          inbox: channel_api.inbox,
+          source_id: '120363123@g.us'
+        )
+      end
+      let(:conversation) do
+        create(
+          :conversation,
+          inbox: channel_api.inbox,
+          account: account,
+          contact: group_contact,
+          contact_inbox: group_contact_inbox
+        )
+      end
+      let(:client) { instance_double(EvolutionApi::ProfileClient, configured?: true) }
+      let(:params) do
+        content = '**+55 21 98712 1920 - Thayane - Administrativo e Financeiro:**' \
+                  "\n\n@76716890431647 Quarta"
+
+        ActionController::Parameters.new({
+                                           content: content,
+                                           message_type: 'incoming',
+                                           content_attributes: { in_reply_to: message_for_reply.id }
+                                         })
+      end
+
+      before do
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_MENTIONS_ENABLED', false).and_return('true')
+        allow(EvolutionApi::ProfileClient).to receive(:new).and_return(client)
+        allow(client).to receive(:fetch_group_participants).with('120363123@g.us').and_return(
+          [
+            {
+              jid: '5521985294475@s.whatsapp.net',
+              lid: '76716890431647@lid',
+              label: 'Flavio Oliveira',
+              phone: '5521985294475'
+            }
+          ]
+        )
+      end
+
+      it 'stores the group sender separately and renders the raw mention with the participant label' do
+        message = message_builder
+        content_attributes = message.content_attributes.with_indifferent_access
+
+        expect(message.content).to eq('@Flavio Oliveira Quarta')
+        expect(content_attributes[:in_reply_to]).to eq(message_for_reply.id)
+        expect(content_attributes.dig(:whatsapp_group_sender, :label))
+          .to eq('Thayane - Administrativo e Financeiro')
+        expect(content_attributes.dig(:whatsapp_group_sender, :phone)).to eq('5521987121920')
+        expect(content_attributes[:whatsapp_mentions]).to include(
+          include(
+            jid: '5521985294475@s.whatsapp.net',
+            lid: '76716890431647@lid',
+            label: 'Flavio Oliveira'
+          )
+        )
+      end
+    end
+
+    context 'when WhatsApp group mentions are disabled' do
+      let(:channel_api) { create(:channel_api, account: account) }
+      let(:group_contact) { create(:contact, account: account, identifier: '120363123@g.us') }
+      let(:group_contact_inbox) do
+        create(
+          :contact_inbox,
+          contact: group_contact,
+          inbox: channel_api.inbox,
+          source_id: '120363123@g.us'
+        )
+      end
+      let(:conversation) do
+        create(
+          :conversation,
+          inbox: channel_api.inbox,
+          account: account,
+          contact: group_contact,
+          contact_inbox: group_contact_inbox
+        )
+      end
+      let(:params) do
+        ActionController::Parameters.new({
+                                           content: "**+55 21 98712 1920 - Thayane:**\n\n@76716890431647 Quarta",
+                                           message_type: 'incoming'
+                                         })
+      end
+
+      before do
+        allow(ENV).to receive(:fetch).and_call_original
+        allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_MENTIONS_ENABLED', false).and_return('false')
+      end
+
+      it 'keeps the incoming content unchanged' do
+        message = message_builder
+
+        expect(message.content).to eq(params[:content])
+        expect(message.content_attributes).to eq({})
+      end
+    end
+
     context 'when attachment messages' do
       let(:params) do
         ActionController::Parameters.new({

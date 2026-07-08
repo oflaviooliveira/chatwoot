@@ -203,7 +203,8 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     {
       jid: participant_jid,
       label: participant_label,
-      phone: participant_phone_from_jid
+      phone: participant_phone_from_jid,
+      lid: participant_lid
     }.compact
   end
 
@@ -216,6 +217,15 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
 
   def participant_phone_from_jid
     phone_digits(participant_jid)
+  end
+
+  def participant_lid
+    lid = params[:lid].to_s.strip
+    return if lid.blank?
+    return lid if lid.end_with?('@lid')
+
+    digits = phone_digits(lid)
+    digits.present? ? "#{digits}@lid" : nil
   end
 
   def formatted_participant_phone
@@ -232,9 +242,10 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
       identifier: participant_jid,
       additional_attributes: {
         whatsapp_jid: participant_jid,
+        whatsapp_lid: participant_lid,
         whatsapp_group_jid: source_id,
         whatsapp_group_participant: true
-      }
+      }.compact
     }.compact
   end
 

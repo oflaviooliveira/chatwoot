@@ -28,3 +28,49 @@ export const normalizeWhatsappMentionsForContent = (
     })
     .map(({ jid, label }) => ({ jid, label }));
 };
+
+const phoneDigits = value => `${value || ''}`.replace(/\D/g, '');
+
+const mentionLookupKeys = mention => {
+  const keys = [];
+  const { jid, lid, phone } = mention || {};
+
+  [jid, lid, phone].forEach(value => {
+    if (!value) return;
+    keys.push(value);
+    const digits = phoneDigits(value);
+    if (digits) keys.push(digits);
+  });
+
+  return keys;
+};
+
+const whatsappMentionsFromAttributes = contentAttributes => {
+  return (
+    contentAttributes?.whatsappMentions ||
+    contentAttributes?.whatsapp_mentions ||
+    []
+  );
+};
+
+export const renderWhatsappMentions = (content = '', contentAttributes = {}) => {
+  const mentions = whatsappMentionsFromAttributes(contentAttributes);
+  if (!content || !mentions.length) return content;
+
+  const mentionsByToken = mentions.reduce((acc, mention) => {
+    const label = mention?.label?.trim();
+    if (!label) return acc;
+
+    mentionLookupKeys(mention).forEach(key => {
+      acc[key] ||= label;
+    });
+    return acc;
+  }, {});
+
+  if (!Object.keys(mentionsByToken).length) return content;
+
+  return content.replace(/@(\d{6,})(?!\w)/g, (match, token) => {
+    const label = mentionsByToken[token];
+    return label ? `@${label}` : match;
+  });
+};

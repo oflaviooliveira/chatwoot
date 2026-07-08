@@ -93,6 +93,7 @@ const saveParticipant = async participant => {
       {
         jid: participant.jid,
         label: participantLabel(participant),
+        lid: participant.lid,
       }
     );
     updateParticipant(data.participant);

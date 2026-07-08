@@ -1,6 +1,7 @@
 import {
   isWhatsappGroupConversation,
   normalizeWhatsappMentionsForContent,
+  renderWhatsappMentions,
 } from 'dashboard/helper/whatsappGroupMentions';
 
 describe('#whatsappGroupMentions', () => {
@@ -40,6 +41,32 @@ describe('#whatsappGroupMentions', () => {
       ).toEqual([
         { jid: '5521985294475@s.whatsapp.net', label: 'Joao Pedro' },
       ]);
+    });
+  });
+
+  describe('#renderWhatsappMentions', () => {
+    it('renders raw lid mention tokens with the saved mention label', () => {
+      expect(
+        renderWhatsappMentions('@76716890431647 Quarta', {
+          whatsappMentions: [
+            {
+              jid: '5521987121920@s.whatsapp.net',
+              lid: '76716890431647@lid',
+              label: 'Flavio Oliveira',
+            },
+          ],
+        })
+      ).toBe('@Flavio Oliveira Quarta');
+    });
+
+    it('keeps content unchanged when no matching mention exists', () => {
+      expect(
+        renderWhatsappMentions('@76716890431647 Quarta', {
+          whatsappMentions: [
+            { jid: '5521987121920@s.whatsapp.net', label: 'Ana' },
+          ],
+        })
+      ).toBe('@76716890431647 Quarta');
     });
   });
 });

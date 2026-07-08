@@ -114,7 +114,8 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
       post "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/whatsapp_group_participants/save_contact",
            params: {
              jid: '5521985294475@s.whatsapp.net',
-             label: 'Maria Silva'
+             label: 'Maria Silva',
+             lid: '76716890431647@lid'
            },
            headers: agent.create_new_auth_token,
            as: :json
@@ -123,11 +124,13 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
 
       created_contact = account.contacts.find_by!(phone_number: '+5521985294475')
       expect(created_contact.name).to eq('Maria Silva')
+      expect(created_contact.additional_attributes['whatsapp_lid']).to eq('76716890431647@lid')
       expect(inbox.contact_inboxes.find_by!(source_id: '5521985294475@s.whatsapp.net').contact).to eq(created_contact)
       expect(response.parsed_body['participant']).to include(
         'jid' => '5521985294475@s.whatsapp.net',
         'label' => 'Maria Silva',
         'phone' => '5521985294475',
+        'lid' => '76716890431647@lid',
         'saved' => true,
         'contact_id' => created_contact.id
       )
