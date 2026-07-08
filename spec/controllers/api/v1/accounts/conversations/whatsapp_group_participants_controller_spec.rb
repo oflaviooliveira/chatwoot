@@ -43,6 +43,9 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
           as: :json
 
       expect(response).to have_http_status(:success)
+      expect(response.headers['Cache-Control']).to include('no-store')
+      expect(response.headers['Pragma']).to eq('no-cache')
+      expect(response.headers['Expires']).to eq('0')
       expect(response.parsed_body['participants']).to eq(
         [
           {
@@ -74,6 +77,7 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
           as: :json
 
       expect(response).to have_http_status(:success)
+      expect(response.headers['Cache-Control']).to include('no-store')
       expect(response.parsed_body['participants']).to eq(
         [
           {

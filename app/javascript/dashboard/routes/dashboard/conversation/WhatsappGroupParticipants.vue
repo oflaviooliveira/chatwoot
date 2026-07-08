@@ -128,9 +128,21 @@ watch(
       />
     </div>
 
-    <div class="flex items-center justify-between mb-2 text-xs text-n-slate-10">
-      <span>{{ participants.length }} participantes</span>
-      <span>{{ savedCount }} salvos</span>
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <div class="flex flex-col min-w-0 text-xs text-n-slate-10">
+        <span>{{ participants.length }} participantes</span>
+        <span>{{ savedCount }} salvos</span>
+      </div>
+      <NextButton
+        xs
+        faded
+        slate
+        icon="i-lucide-refresh-cw"
+        label="Recarregar"
+        :is-loading="isLoading"
+        :disabled="isLoading"
+        @click="fetchParticipants"
+      />
     </div>
 
     <div

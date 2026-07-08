@@ -1,5 +1,6 @@
 class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Api::V1::Accounts::Conversations::BaseController
   def show
+    disable_cache
     render json: { participants: participants }
   end
 
@@ -75,6 +76,12 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     @client ||= EvolutionApi::ProfileClient.new
   end
 
+  def disable_cache
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+  end
+
   def decorate_participants(participants)
     participants = Array(participants)
     contacts_by_key = contacts_indexed_by_participant_key(participants)
@@ -105,7 +112,7 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     source_match_values = (jid_keys + phone_source_values).uniq
 
     contacts = Contact
-               .where(account_id: @account.id)
+               .where(account_id: Current.account.id)
                .left_outer_joins(:contact_inboxes)
                .where(
                  'contacts.phone_number IN (:phone_values) OR contacts.identifier IN (:source_values) OR contact_inboxes.source_id IN (:source_values)',
