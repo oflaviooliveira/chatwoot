@@ -13,6 +13,7 @@ import AccordionItem from 'dashboard/components/Accordion/AccordionItem.vue';
 import ContactConversations from './ContactConversations.vue';
 import ConversationAction from './ConversationAction.vue';
 import ConversationParticipant from './ConversationParticipant.vue';
+import WhatsappGroupParticipants from './WhatsappGroupParticipants.vue';
 import ContactInfo from './contact/ContactInfo.vue';
 import ContactNotes from './contact/ContactNotes.vue';
 import ConversationInfo from './ConversationInfo.vue';
@@ -25,6 +26,8 @@ import ShopifyOrdersList from 'dashboard/components/widgets/conversation/Shopify
 import SidebarActionsHeader from 'dashboard/components-next/SidebarActionsHeader.vue';
 import LinearIssuesList from 'dashboard/components/widgets/conversation/linear/IssuesList.vue';
 import LinearSetupCTA from 'dashboard/components/widgets/conversation/linear/LinearSetupCTA.vue';
+import { INBOX_TYPES } from 'dashboard/helper/inbox';
+import { isWhatsappGroupConversation } from 'dashboard/helper/whatsappGroupMentions';
 
 const props = defineProps({
   conversationId: {
@@ -47,6 +50,7 @@ const {
 const dragging = ref(false);
 const isWhatsAppProfileOpen = ref(true);
 const isClientManagementOpen = ref(true);
+const isWhatsappGroupParticipantsOpen = ref(true);
 const conversationSidebarItems = ref([]);
 
 const shopifyIntegration = useFunctionGetter(
@@ -80,6 +84,8 @@ const isLinearConnected = computed(
 const store = useStore();
 const currentChat = useMapGetter('getSelectedChat');
 const conversationId = computed(() => props.conversationId);
+const inboxId = computed(() => props.inboxId);
+const inbox = useFunctionGetter('inboxes/getInbox', inboxId);
 const conversationMetadataGetter = useMapGetter(
   'conversationMetadata/getConversationMetadata'
 );
@@ -91,6 +97,12 @@ const conversationAdditionalAttributes = computed(
 );
 
 const channelType = computed(() => currentChat.value.meta?.channel);
+const isAPIInbox = computed(
+  () => (inbox.value?.channel_type || channelType.value) === INBOX_TYPES.API
+);
+const showWhatsappGroupParticipants = computed(() =>
+  isWhatsappGroupConversation(currentChat.value, isAPIInbox.value)
+);
 
 const contactGetter = useMapGetter('contacts/getContact');
 const contactId = computed(() => currentChat.value.meta?.sender?.id);
@@ -170,6 +182,18 @@ onMounted(() => {
         @toggle="isWhatsAppProfileOpen = !isWhatsAppProfileOpen"
       >
         <WhatsAppProfileInfo :profile="whatsAppProfile" />
+      </AccordionItem>
+      <AccordionItem
+        v-if="showWhatsappGroupParticipants"
+        title="Participantes do grupo"
+        :is-open="isWhatsappGroupParticipantsOpen"
+        compact
+        class="mb-3"
+        @toggle="
+          isWhatsappGroupParticipantsOpen = !isWhatsappGroupParticipantsOpen
+        "
+      >
+        <WhatsappGroupParticipants :conversation-id="conversationId" />
       </AccordionItem>
       <Draggable
         :list="conversationSidebarItems"

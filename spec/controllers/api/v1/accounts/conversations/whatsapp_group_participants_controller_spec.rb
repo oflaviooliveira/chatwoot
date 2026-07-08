@@ -48,7 +48,8 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
           {
             'jid' => '5521985294475@s.whatsapp.net',
             'label' => 'Joao Pedro',
-            'phone' => '5521985294475'
+            'phone' => '5521985294475',
+            'saved' => false
           }
         ]
       )
@@ -78,7 +79,9 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
           {
             'jid' => '5521985294475@s.whatsapp.net',
             'label' => 'Maria Silva',
-            'phone' => '5521985294475'
+            'phone' => '5521985294475',
+            'saved' => true,
+            'contact_id' => participant_contact.id
           }
         ]
       )
@@ -97,6 +100,33 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
       expect(response).to have_http_status(:success)
       expect(response.parsed_body['participants']).to eq([])
       expect(client).not_to have_received(:fetch_group_participants)
+    end
+  end
+
+  describe 'POST /api/v1/accounts/{account.id}/conversations/<id>/whatsapp_group_participants/save_contact' do
+    it 'creates a contact and contact inbox for a group participant' do
+      allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_MENTIONS_ENABLED', false).and_return('true')
+
+      post "/api/v1/accounts/#{account.id}/conversations/#{conversation.display_id}/whatsapp_group_participants/save_contact",
+           params: {
+             jid: '5521985294475@s.whatsapp.net',
+             label: 'Maria Silva'
+           },
+           headers: agent.create_new_auth_token,
+           as: :json
+
+      expect(response).to have_http_status(:success)
+
+      created_contact = account.contacts.find_by!(phone_number: '+5521985294475')
+      expect(created_contact.name).to eq('Maria Silva')
+      expect(inbox.contact_inboxes.find_by!(source_id: '5521985294475@s.whatsapp.net').contact).to eq(created_contact)
+      expect(response.parsed_body['participant']).to include(
+        'jid' => '5521985294475@s.whatsapp.net',
+        'label' => 'Maria Silva',
+        'phone' => '5521985294475',
+        'saved' => true,
+        'contact_id' => created_contact.id
+      )
     end
   end
 end
