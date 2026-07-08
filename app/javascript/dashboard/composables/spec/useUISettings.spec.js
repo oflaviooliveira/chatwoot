@@ -8,13 +8,15 @@ import {
 // Mocking the store composables
 const mockDispatch = vi.fn();
 
-const getUISettingsMock = ref({
+const defaultUISettings = {
   is_ct_labels_open: true,
   conversation_sidebar_items_order: DEFAULT_CONVERSATION_SIDEBAR_ITEMS_ORDER,
   contact_sidebar_items_order: DEFAULT_CONTACT_SIDEBAR_ITEMS_ORDER,
   editor_message_key: 'enter',
   channel_email_quoted_reply_enabled: true,
-});
+};
+
+const getUISettingsMock = ref({ ...defaultUISettings });
 
 vi.mock('dashboard/composables/store', () => ({
   useStoreGetters: () => ({
@@ -28,6 +30,7 @@ vi.mock('dashboard/composables/store', () => ({
 describe('useUISettings', () => {
   beforeEach(() => {
     mockDispatch.mockClear();
+    getUISettingsMock.value = { ...defaultUISettings };
   });
 
   it('returns uiSettings', () => {
@@ -112,6 +115,18 @@ describe('useUISettings', () => {
   it('fetches signature flag from UI settings correctly', () => {
     const { fetchSignatureFlagFromUISettings } = useUISettings();
     expect(fetchSignatureFlagFromUISettings('email')).toBe(undefined);
+  });
+
+  it('defaults signature flag to enabled for API inboxes', () => {
+    const { fetchSignatureFlagFromUISettings } = useUISettings();
+    expect(fetchSignatureFlagFromUISettings('Channel::Api')).toBe(true);
+  });
+
+  it('honors disabled signature flag for API inboxes', () => {
+    getUISettingsMock.value.channel_api_signature_enabled = false;
+
+    const { fetchSignatureFlagFromUISettings } = useUISettings();
+    expect(fetchSignatureFlagFromUISettings('Channel::Api')).toBe(false);
   });
 
   it('sets quoted reply flag for inbox correctly', () => {

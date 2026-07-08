@@ -252,7 +252,7 @@ export default {
     },
     showMessageSignatureButton() {
       if (this.isEditorDisabled) return false;
-      return !this.isOnPrivateNote && !this.isAPIInbox;
+      return !this.isOnPrivateNote;
     },
     sendWithSignature() {
       // channelType is sourced from inboxMixin
