@@ -16,6 +16,7 @@ const props = defineProps({
 const participants = ref([]);
 const search = ref('');
 const isLoading = ref(false);
+const hasError = ref(false);
 const savingJids = ref(new Set());
 
 const filteredParticipants = computed(() => {
@@ -68,6 +69,7 @@ const fetchParticipants = async () => {
   if (!props.conversationId) return;
 
   isLoading.value = true;
+  hasError.value = false;
   try {
     const { data } = await WhatsappGroupParticipantsAPI.get(
       props.conversationId
@@ -75,6 +77,7 @@ const fetchParticipants = async () => {
     participants.value = data.participants || [];
   } catch {
     participants.value = [];
+    hasError.value = true;
   } finally {
     isLoading.value = false;
   }
@@ -188,6 +191,13 @@ watch(
         />
       </div>
     </div>
+
+    <p
+      v-else-if="hasError"
+      class="px-3 py-6 text-sm leading-6 text-center text-n-slate-11"
+    >
+      Nao foi possivel carregar os participantes
+    </p>
 
     <p v-else class="px-3 py-6 text-sm leading-6 text-center text-n-slate-11">
       Nenhum participante encontrado

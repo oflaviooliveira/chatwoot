@@ -117,5 +117,38 @@ RSpec.describe EvolutionApi::ProfileClient do
         ]
       )
     end
+
+    it 'prefers phoneNumber over lid ids and keeps the lid as metadata' do
+      allow(HTTParty).to receive(:get)
+        .with(
+          'https://evolution.example.com/group/findGroupInfos/gquick-atendimento',
+          hash_including(query: { groupJid: '120363123@g.us' })
+        ).and_return(
+          response(
+            {
+              'participants' => [
+                {
+                  'id' => '203079056117967@lid',
+                  'phoneNumber' => '5521981618351@s.whatsapp.net',
+                  'admin' => nil
+                }
+              ]
+            }
+          )
+        )
+
+      result = client.fetch_group_participants('120363123@g.us')
+
+      expect(result).to eq(
+        [
+          {
+            jid: '5521981618351@s.whatsapp.net',
+            label: '5521981618351',
+            phone: '5521981618351',
+            lid: '203079056117967@lid'
+          }
+        ]
+      )
+    end
   end
 end

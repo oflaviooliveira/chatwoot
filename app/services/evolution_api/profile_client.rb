@@ -68,7 +68,7 @@ class EvolutionApi::ProfileClient
     return if payload.blank?
 
     jid = normalize_participant_jid(
-      extract_first(payload, %w[id jid participant remoteJid phoneNumber number])
+      extract_first(payload, %w[phoneNumber jid participant remoteJid number id])
     )
     return if jid.blank? || jid.end_with?('@g.us')
 
@@ -76,6 +76,7 @@ class EvolutionApi::ProfileClient
       jid: jid,
       label: participant_label(payload, jid),
       phone: participant_phone(jid),
+      lid: normalize_lid(extract_first(payload, %w[id lid])),
       admin: extract_first(payload, %w[admin isAdmin])
     }.compact
   end
@@ -100,6 +101,14 @@ class EvolutionApi::ProfileClient
     return if digits.blank?
 
     "#{digits}@s.whatsapp.net"
+  end
+
+  def normalize_lid(value)
+    value = value.to_s.strip
+    return if value.blank?
+    return unless value.end_with?('@lid')
+
+    value
   end
 
   def extract_first(payload, keys)
