@@ -54,6 +54,36 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
       )
     end
 
+    it 'uses an existing Chatwoot contact name when Evolution only returns the phone number' do
+      participant_contact = create(:contact, account: account, name: 'Maria Silva', phone_number: '+5521985294475')
+      create(:contact_inbox, contact: participant_contact, inbox: inbox, source_id: '5521985294475@s.whatsapp.net')
+
+      allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_MENTIONS_ENABLED', false).and_return('true')
+      allow(client).to receive(:fetch_group_participants).with('120363123@g.us').and_return(
+        [
+          { jid: '5521985294475@s.whatsapp.net', label: '5521985294475', phone: '5521985294475' }
+        ]
+      )
+
+      get api_v1_account_conversation_whatsapp_group_participants_url(
+        account_id: account.id,
+        conversation_id: conversation.display_id
+      ),
+          headers: agent.create_new_auth_token,
+          as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body['participants']).to eq(
+        [
+          {
+            'jid' => '5521985294475@s.whatsapp.net',
+            'label' => 'Maria Silva',
+            'phone' => '5521985294475'
+          }
+        ]
+      )
+    end
+
     it 'returns an empty list when the feature is disabled' do
       allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_MENTIONS_ENABLED', false).and_return('false')
 

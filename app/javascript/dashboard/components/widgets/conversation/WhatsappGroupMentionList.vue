@@ -67,6 +67,11 @@ const onParticipantSelect = index => {
   selectedIndex.value = index;
   onSelect();
 };
+
+const participantDetails = participant => {
+  const details = participant.phone || participant.jid || '';
+  return details === participant.label ? '' : details;
+};
 </script>
 
 <template>
@@ -106,10 +111,11 @@ const onParticipantSelect = index => {
                 {{ item.label }}
               </h5>
               <div
+                v-if="participantDetails(item)"
                 class="overflow-hidden text-xs whitespace-nowrap text-ellipsis text-n-slate-10"
                 :class="{ 'text-n-slate-11': index === selectedIndex }"
               >
-                {{ item.phone || item.jid }}
+                {{ participantDetails(item) }}
               </div>
             </div>
           </div>
