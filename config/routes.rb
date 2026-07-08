@@ -142,6 +142,7 @@ Rails.application.routes.draw do
                   post :retry
                 end
               end
+              resource :whatsapp_group_participants, only: [:show]
               resources :assignments, only: [:create]
               resources :labels, only: [:create, :index]
               resource :participants, only: [:show, :create, :update, :destroy]

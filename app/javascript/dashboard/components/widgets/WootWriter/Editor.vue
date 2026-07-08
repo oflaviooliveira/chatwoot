@@ -14,6 +14,7 @@ import {
 import CannedResponse from '../conversation/CannedResponse.vue';
 import KeyboardEmojiSelector from './keyboardEmojiSelector.vue';
 import TagAgents from '../conversation/TagAgents.vue';
+import WhatsappGroupMentionList from '../conversation/WhatsappGroupMentionList.vue';
 import VariableList from '../conversation/VariableList.vue';
 import TagTools from '../conversation/TagTools.vue';
 import CopilotMenuBar from './CopilotMenuBar.vue';
@@ -85,6 +86,9 @@ const props = defineProps({
   enableVariables: { type: Boolean, default: false },
   enableCannedResponses: { type: Boolean, default: true },
   enableCaptainTools: { type: Boolean, default: false },
+  enableWhatsappGroupMentions: { type: Boolean, default: false },
+  whatsappMentionParticipants: { type: Array, default: () => [] },
+  isLoadingWhatsappMentionParticipants: { type: Boolean, default: false },
   variables: { type: Object, default: () => ({}) },
   signature: { type: String, default: '' },
   // allowSignature is a kill switch, ensuring no signature methods
@@ -104,6 +108,8 @@ const emit = defineEmits([
   'toggleCannedMenu',
   'toggleVariablesMenu',
   'toggleToolsMenu',
+  'toggleWhatsappMention',
+  'selectWhatsappMention',
   'clearSelection',
   'blur',
   'focus',
@@ -186,8 +192,10 @@ const showCannedMenu = ref(false);
 const showVariables = ref(false);
 const showEmojiMenu = ref(false);
 const showToolsMenu = ref(false);
+const showWhatsappMentions = ref(false);
 const mentionSearchKey = ref('');
 const toolSearchKey = ref('');
+const whatsappMentionSearchKey = ref('');
 const cannedSearchTerm = ref('');
 const variableSearchTerm = ref('');
 const emojiSearchTerm = ref('');
@@ -287,9 +295,20 @@ const plugins = computed(() => {
     }),
     createSuggestionPlugin({
       trigger: '@',
+      showMenu: showWhatsappMentions,
+      searchTerm: whatsappMentionSearchKey,
+      isAllowed: () =>
+        props.enableWhatsappGroupMentions &&
+        !props.isPrivate &&
+        !props.enableCaptainTools,
+    }),
+    createSuggestionPlugin({
+      trigger: '@',
       showMenu: showUserMentions,
       searchTerm: mentionSearchKey,
-      isAllowed: () => props.isPrivate || !props.enableCaptainTools,
+      isAllowed: () =>
+        props.isPrivate ||
+        (!props.enableCaptainTools && !props.enableWhatsappGroupMentions),
     }),
     createSuggestionPlugin({
       trigger: '/',
@@ -338,6 +357,12 @@ watch(showVariables, updatedValue => {
 });
 watch(showToolsMenu, updatedValue => {
   emit('toggleToolsMenu', props.enableCaptainTools && updatedValue);
+});
+watch(showWhatsappMentions, updatedValue => {
+  emit(
+    'toggleWhatsappMention',
+    props.enableWhatsappGroupMentions && updatedValue
+  );
 });
 
 function focusEditorInputField(pos = 'end') {
@@ -704,6 +729,26 @@ function insertSpecialContent(type, content) {
   useTrack(event_map[type]);
 }
 
+function insertWhatsappMention(participant) {
+  if (!editorView) {
+    return;
+  }
+
+  const label = participant?.label || participant?.phone || participant?.jid;
+  if (!label) return;
+
+  const node = editorView.state.schema.text(`@${label}`);
+  const from = range.value?.from || editorView.state.selection.from || 0;
+  const to = range.value?.to;
+
+  insertNodeIntoEditor(node, from, to);
+  showWhatsappMentions.value = false;
+  emit('selectWhatsappMention', {
+    jid: participant.jid,
+    label,
+  });
+}
+
 function handleLineBreakWhenCmdAndEnterToSendEnabled(event) {
   if (
     hasPressedCommandAndEnter(event) &&
@@ -791,7 +836,9 @@ watch(
     showCannedMenu.value = false;
     showEmojiMenu.value = false;
     showVariables.value = false;
+    showWhatsappMentions.value = false;
     cannedSearchTerm.value = '';
+    whatsappMentionSearchKey.value = '';
     reloadState(props.modelValue);
   }
 );
@@ -868,6 +915,13 @@ useEmitter(BUS_EVENTS.INSERT_INTO_RICH_EDITOR, insertContentIntoEditor);
       v-if="showUserMentions && isPrivate"
       :search-key="mentionSearchKey"
       @select-agent="content => insertSpecialContent('mention', content)"
+    />
+    <WhatsappGroupMentionList
+      v-if="showWhatsappMentions && enableWhatsappGroupMentions"
+      :search-key="whatsappMentionSearchKey"
+      :participants="whatsappMentionParticipants"
+      :is-loading="isLoadingWhatsappMentionParticipants"
+      @select-participant="insertWhatsappMention"
     />
     <CannedResponse
       v-if="shouldShowCannedResponses"

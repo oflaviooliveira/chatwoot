@@ -30,6 +30,7 @@ import {
 } from '@chatwoot/utils';
 import WhatsappTemplates from './WhatsappTemplates/Modal.vue';
 import ContentTemplates from './ContentTemplates/ContentTemplatesModal.vue';
+import WhatsappGroupParticipantsAPI from 'dashboard/api/inbox/whatsappGroupParticipants';
 import { MESSAGE_MAX_LENGTH } from 'shared/helpers/MessageTypeHelper';
 import inboxMixin, { INBOX_FEATURES } from 'shared/mixins/inboxMixin';
 import { trimContent, debounce, getRecipients } from '@chatwoot/utils';
@@ -50,6 +51,10 @@ import {
   removeSignature,
   getEffectiveChannelType,
 } from 'dashboard/helper/editorHelper';
+import {
+  isWhatsappGroupConversation,
+  normalizeWhatsappMentionsForContent,
+} from 'dashboard/helper/whatsappGroupMentions';
 import { useCopilotReply } from 'dashboard/composables/useCopilotReply';
 import { useKbd } from 'dashboard/composables/utils/useKbd';
 import { isFileTypeAllowedForChannel } from 'shared/helpers/FileHelper';
@@ -129,6 +134,11 @@ export default {
       undefinedVariableMessage: '',
       showMentions: false,
       showUserMentions: false,
+      showWhatsappMentions: false,
+      whatsappMentionParticipants: [],
+      whatsappMentionParticipantsLoaded: false,
+      isLoadingWhatsappMentionParticipants: false,
+      selectedWhatsappMentions: [],
       showCannedMenu: false,
       showVariablesMenu: false,
       newConversationModalActive: false,
@@ -223,6 +233,12 @@ export default {
         this.isMessageEmpty ||
         this.message.length === 0 ||
         this.message.length > this.maxLength
+      );
+    },
+    enableWhatsappGroupMentions() {
+      return (
+        !this.isOnPrivateNote &&
+        isWhatsappGroupConversation(this.currentChat, this.isAPIInbox)
       );
     },
     sender() {
@@ -444,6 +460,7 @@ export default {
         // This prevents overwriting user input (e.g., CC/BCC fields) when performing actions
         // like self-assign or other updates that do not actually change the conversation context
         this.setCCAndToEmailsFromLastChat();
+        this.resetWhatsappMentions();
         // Reset Copilot editor state (includes cancelling ongoing generation)
         this.copilot.reset();
       }
@@ -693,6 +710,7 @@ export default {
     isAValidEvent(selectedKey) {
       return (
         !this.showUserMentions &&
+        !this.showWhatsappMentions &&
         !this.showMentions &&
         !this.showCannedMenu &&
         !this.showVariablesMenu &&
@@ -736,6 +754,54 @@ export default {
     },
     toggleUserMention(currentMentionState) {
       this.showUserMentions = currentMentionState;
+    },
+    async toggleWhatsappMention(currentMentionState) {
+      this.showWhatsappMentions = currentMentionState;
+      if (currentMentionState) {
+        await this.fetchWhatsappGroupParticipants();
+      }
+    },
+    async fetchWhatsappGroupParticipants() {
+      if (
+        !this.enableWhatsappGroupMentions ||
+        this.whatsappMentionParticipantsLoaded ||
+        this.isLoadingWhatsappMentionParticipants
+      ) {
+        return;
+      }
+
+      this.isLoadingWhatsappMentionParticipants = true;
+      try {
+        const { data } = await WhatsappGroupParticipantsAPI.get(
+          this.currentChat.id
+        );
+        this.whatsappMentionParticipants = data?.participants || [];
+        this.whatsappMentionParticipantsLoaded = true;
+      } catch (error) {
+        this.whatsappMentionParticipants = [];
+      } finally {
+        this.isLoadingWhatsappMentionParticipants = false;
+      }
+    },
+    onSelectWhatsappMention(mention) {
+      if (!mention?.jid) return;
+
+      const existingIndex = this.selectedWhatsappMentions.findIndex(
+        selectedMention => selectedMention.jid === mention.jid
+      );
+
+      if (existingIndex >= 0) {
+        this.selectedWhatsappMentions.splice(existingIndex, 1, mention);
+      } else {
+        this.selectedWhatsappMentions.push(mention);
+      }
+    },
+    resetWhatsappMentions() {
+      this.showWhatsappMentions = false;
+      this.whatsappMentionParticipants = [];
+      this.whatsappMentionParticipantsLoaded = false;
+      this.isLoadingWhatsappMentionParticipants = false;
+      this.selectedWhatsappMentions = [];
     },
     toggleCannedMenu(value) {
       this.showCannedMenu = value;
@@ -951,6 +1017,7 @@ export default {
         );
       }
       this.attachedFiles = [];
+      this.selectedWhatsappMentions = [];
       this.isRecordingAudio = false;
       this.resetReplyToMessage();
       this.resetAudioRecorderInput();
@@ -1054,6 +1121,23 @@ export default {
 
       return payload;
     },
+    setWhatsappMentionsInPayload(payload, content) {
+      if (!this.enableWhatsappGroupMentions) return payload;
+
+      const whatsappMentions = normalizeWhatsappMentionsForContent(
+        this.selectedWhatsappMentions,
+        content
+      );
+      if (!whatsappMentions.length) return payload;
+
+      return {
+        ...payload,
+        contentAttributes: {
+          ...payload.contentAttributes,
+          whatsapp_mentions: whatsappMentions,
+        },
+      };
+    },
     getMultipleMessagesPayload(message) {
       const multipleMessagePayload = [];
 
@@ -1073,6 +1157,10 @@ export default {
           };
 
           attachmentPayload = this.setReplyToInPayload(attachmentPayload);
+          attachmentPayload = this.setWhatsappMentionsInPayload(
+            attachmentPayload,
+            caption
+          );
           multipleMessagePayload.push(attachmentPayload);
           // For WhatsApp, only the first attachment gets a caption
           if (!this.isAnInstagramChannel) caption = '';
@@ -1097,6 +1185,10 @@ export default {
         };
 
         messagePayload = this.setReplyToInPayload(messagePayload);
+        messagePayload = this.setWhatsappMentionsInPayload(
+          messagePayload,
+          message
+        );
 
         multipleMessagePayload.push(messagePayload);
       }
@@ -1113,6 +1205,10 @@ export default {
         sender: this.sender,
       };
       messagePayload = this.setReplyToInPayload(messagePayload);
+      messagePayload = this.setWhatsappMentionsInPayload(
+        messagePayload,
+        messageWithQuote
+      );
 
       if (this.attachedFiles && this.attachedFiles.length) {
         messagePayload.files = [];
@@ -1318,11 +1414,18 @@ export default {
           allow-signature
           :channel-type="channelType"
           :medium="inbox.medium"
+          :enable-whatsapp-group-mentions="enableWhatsappGroupMentions"
+          :whatsapp-mention-participants="whatsappMentionParticipants"
+          :is-loading-whatsapp-mention-participants="
+            isLoadingWhatsappMentionParticipants
+          "
           @typing-off="onTypingOff"
           @typing-on="onTypingOn"
           @focus="onFocus"
           @blur="onBlur"
           @toggle-user-mention="toggleUserMention"
+          @toggle-whatsapp-mention="toggleWhatsappMention"
+          @select-whatsapp-mention="onSelectWhatsappMention"
           @toggle-canned-menu="toggleCannedMenu"
           @toggle-variables-menu="toggleVariablesMenu"
           @clear-selection="clearEditorSelection"

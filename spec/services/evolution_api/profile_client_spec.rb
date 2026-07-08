@@ -89,4 +89,33 @@ RSpec.describe EvolutionApi::ProfileClient do
       )
     end
   end
+
+  describe '#fetch_group_participants' do
+    it 'normalizes participants from group info' do
+      allow(HTTParty).to receive(:get)
+        .with(
+          'https://evolution.example.com/group/findGroupInfos/gquick-atendimento',
+          hash_including(query: { groupJid: '120363123@g.us' })
+        ).and_return(
+          response(
+            {
+              'participants' => [
+                { 'id' => '5521985294475@s.whatsapp.net', 'name' => 'João Pedro', 'admin' => 'admin' },
+                { 'id' => '5521999999999', 'notify' => 'Ana Silva' },
+                { 'id' => '5521985294475@s.whatsapp.net', 'name' => 'João Pedro' }
+              ]
+            }
+          )
+        )
+
+      result = client.fetch_group_participants('120363123@g.us')
+
+      expect(result).to eq(
+        [
+          { jid: '5521999999999@s.whatsapp.net', label: 'Ana Silva', phone: '5521999999999' },
+          { jid: '5521985294475@s.whatsapp.net', label: 'João Pedro', phone: '5521985294475', admin: 'admin' }
+        ]
+      )
+    end
+  end
 end
