@@ -144,6 +144,10 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
   def contact_label(contact, participant = nil)
     [
       contact.name,
+      contact.additional_attributes&.dig('company_name'),
+      contact.additional_attributes&.dig('whatsapp_profile', 'display_name'),
+      contact.additional_attributes&.dig('whatsapp_profile', 'business_name'),
+      contact.additional_attributes&.dig('whatsapp_profile', 'profile_name'),
       contact.additional_attributes&.dig('name'),
       contact.additional_attributes&.dig('push_name'),
       contact.additional_attributes&.dig('pushName'),
@@ -214,7 +218,14 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     business_profile = profile_data[:business_profile] || {}
     profile_picture = profile_data[:profile_picture] || {}
 
-    business_name = extract_first(business_profile, %w[businessName name verifiedName])
+    description = extract_first(business_profile, %w[description businessDescription about status]) ||
+                  extract_first(profile, %w[description businessDescription about status])
+    website = extract_first(business_profile, %w[website websites site]) ||
+              extract_first(profile, %w[website websites site])
+    email = extract_first(business_profile, %w[email businessEmail]) ||
+            extract_first(profile, %w[email businessEmail])
+    business_name = extract_first(business_profile, %w[businessName name verifiedName]) ||
+                    inferred_business_name(description: description, website: website, email: email)
     profile_name = extract_first(profile, %w[name pushName profileName notify])
     display_name = [business_name, profile_name].find { |value| value.present? && !numeric_label?(value) && !value.include?('@') }
 
@@ -222,13 +233,63 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
       label: display_name,
       profile_name: profile_name,
       business_name: business_name,
-      description: extract_first(business_profile, %w[description businessDescription about status]),
+      description: description,
       category: extract_first(business_profile, %w[category businessCategory vertical]),
-      website: extract_first(business_profile, %w[website websites site]),
-      email: extract_first(business_profile, %w[email businessEmail]),
-      profile_picture_url: extract_first(profile_picture, %w[profilePictureUrl url picture]),
+      website: website,
+      email: email,
+      profile_picture_url: extract_first(profile_picture, %w[profilePictureUrl url picture]) ||
+        extract_first(profile, %w[profilePictureUrl picture url]),
       phone: phone
     }.compact
+  end
+
+  def inferred_business_name(description:, website:, email:)
+    business_name_from_description(description) ||
+      business_name_from_domain(website) ||
+      business_name_from_domain(email.to_s.split('@').last)
+  end
+
+  def business_name_from_description(description)
+    text = description.to_s.strip
+    return if text.blank?
+
+    candidate = text[/\b(?:da|do|de)\s+([^.,;\n]+)/i, 1]
+    normalize_inferred_business_name(candidate)
+  end
+
+  def business_name_from_domain(value)
+    values = normalize_website_values(value)
+    host = values.filter_map do |candidate|
+      candidate = candidate.to_s.strip
+      next if candidate.blank?
+
+      url = candidate.match?(%r{\Ahttps?://}i) ? candidate : "https://#{candidate}"
+      URI.parse(url).host
+    rescue URI::InvalidURIError
+      nil
+    end.first
+    return if host.blank?
+
+    normalize_inferred_business_name(host.sub(/\Awww\./, '').split('.').first&.titleize)
+  end
+
+  def normalize_website_values(value)
+    return value if value.is_a?(Array)
+    return [] if value.blank?
+
+    parsed = JSON.parse(value.to_s)
+    parsed.is_a?(Array) ? parsed : [value]
+  rescue JSON::ParserError
+    [value]
+  end
+
+  def normalize_inferred_business_name(value)
+    value = value.to_s.squish
+    return if value.blank?
+    return if numeric_label?(value) || value.include?('@')
+    return if value.length > 80
+
+    value
   end
 
   def extract_first(payload, keys)

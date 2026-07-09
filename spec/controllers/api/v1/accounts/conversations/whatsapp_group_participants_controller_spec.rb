@@ -132,6 +132,60 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
       )
     end
 
+    it 'infers a business name from profile details when WhatsApp omits the name field' do
+      allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_MENTIONS_ENABLED', false).and_return('true')
+      allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_PARTICIPANT_PROFILE_LOOKUP_LIMIT', 8).and_return('8')
+      allow(client).to receive(:fetch_group_participants).with('120363123@g.us').and_return(
+        [
+          { jid: '5521986118879@s.whatsapp.net', label: '5521986118879', phone: '5521986118879' }
+        ]
+      )
+      allow(client).to receive(:fetch_contact_profile).with('5521986118879').and_return(
+        {
+          profile: {
+            'isBusiness' => true,
+            'email' => 'hub@gquicks.com.br',
+            'description' => 'Canal oficial de atendimento da GQUICKS BPO Financeiro. Suporte aos clientes.',
+            'website' => 'https://gquicks.com.br',
+            'picture' => 'https://example.com/avatar.png'
+          },
+          business_profile: {
+            'isBusiness' => true,
+            'description' => 'Canal oficial de atendimento da GQUICKS BPO Financeiro. Suporte aos clientes.',
+            'website' => ['https://gquicks.com.br'],
+            'email' => 'hub@gquicks.com.br',
+            'category' => 'Other Business'
+          },
+          profile_picture: {}
+        }
+      )
+
+      get api_v1_account_conversation_whatsapp_group_participants_url(
+        account_id: account.id,
+        conversation_id: conversation.display_id
+      ),
+          headers: agent.create_new_auth_token,
+          as: :json
+
+      expect(response).to have_http_status(:success)
+      expect(response.parsed_body['participants']).to eq(
+        [
+          {
+            'jid' => '5521986118879@s.whatsapp.net',
+            'label' => 'GQUICKS BPO Financeiro',
+            'phone' => '5521986118879',
+            'saved' => false,
+            'business_name' => 'GQUICKS BPO Financeiro',
+            'description' => 'Canal oficial de atendimento da GQUICKS BPO Financeiro. Suporte aos clientes.',
+            'category' => 'Other Business',
+            'website' => ['https://gquicks.com.br'],
+            'email' => 'hub@gquicks.com.br',
+            'profile_picture_url' => 'https://example.com/avatar.png'
+          }
+        ]
+      )
+    end
+
     it 'returns an empty list when the feature is disabled' do
       allow(ENV).to receive(:fetch).with('WHATSAPP_GROUP_MENTIONS_ENABLED', false).and_return('false')
 
