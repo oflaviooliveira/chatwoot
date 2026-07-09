@@ -186,6 +186,27 @@ describe Messages::MessageBuilder do
           )
         )
       end
+
+      context 'when the group sender arrives as a WhatsApp LID' do
+        let(:params) do
+          ActionController::Parameters.new({
+                                             content: "**76716890431647@lid - 76716890431647@lid:**\n\nT2",
+                                             message_type: 'incoming',
+                                             content_attributes: {}
+                                           })
+        end
+
+        it 'resolves the visible sender label from the group participant list' do
+          message = message_builder
+          content_attributes = message.content_attributes.with_indifferent_access
+
+          expect(message.content).to eq('T2')
+          expect(content_attributes.dig(:whatsapp_group_sender, :label)).to eq('Flavio Oliveira')
+          expect(content_attributes.dig(:whatsapp_group_sender, :name)).to eq('Flavio Oliveira')
+          expect(content_attributes.dig(:whatsapp_group_sender, :phone)).to eq('5521985294475')
+          expect(content_attributes.dig(:whatsapp_group_sender, :lid)).to eq('76716890431647@lid')
+        end
+      end
     end
 
     context 'when WhatsApp group mentions are disabled' do

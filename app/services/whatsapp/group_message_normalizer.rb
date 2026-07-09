@@ -66,6 +66,9 @@ class Whatsapp::GroupMessageNormalizer
   end
 
   def group_sender_payload(sender_label)
+    participant_sender = group_sender_participant_payload(sender_label)
+    return participant_sender if participant_sender.present?
+
     phone = phone_digits(sender_label)
     name = sender_label.to_s.sub(/\A[\d\s+\-().]+-\s*/, '').strip.presence
 
@@ -75,6 +78,38 @@ class Whatsapp::GroupMessageNormalizer
       phone: phone,
       jid: phone.present? ? "#{phone}@s.whatsapp.net" : nil
     }.compact
+  end
+
+  def group_sender_participant_payload(sender_label)
+    return unless sender_label.to_s.include?('@lid')
+    return unless evolution_client.configured?
+
+    sender_keys = group_sender_lookup_keys(sender_label)
+    return if sender_keys.blank?
+
+    participant = evolution_client.fetch_group_participants(group_source_id)
+                                  .filter_map { |item| normalize_mention(item) }
+                                  .find do |mention|
+      (mention_lookup_keys(mention) & sender_keys).any?
+    end
+    return if participant.blank?
+
+    label = participant[:label]
+    return if label.blank? || label.include?('@lid') || numeric_label?(label)
+
+    {
+      label: label,
+      name: label,
+      phone: participant[:phone],
+      jid: participant[:jid],
+      lid: participant[:lid]
+    }.compact
+  rescue StandardError => e
+    Rails.logger.warn(
+      "Whatsapp group sender normalization failed for conversation #{conversation.id}: " \
+      "#{e.class} - #{e.message}"
+    )
+    nil
   end
 
   def normalize_mentions_in_content
@@ -217,6 +252,11 @@ class Whatsapp::GroupMessageNormalizer
     digits = phone_digits(value)
     keys << digits if digits.present?
     keys
+  end
+
+  def group_sender_lookup_keys(sender_label)
+    jid_tokens = sender_label.to_s.scan(/\d+@(?:lid|s\.whatsapp\.net)/)
+    (lookup_keys(sender_label) + jid_tokens.flat_map { |token| lookup_keys(token) }).uniq
   end
 
   def phone_digits(value)
