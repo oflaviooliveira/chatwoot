@@ -42,6 +42,12 @@ const participantDetails = participant => {
   return details === participant.label ? '' : details;
 };
 
+const participantMetaDetails = participant =>
+  [participant.business_name, participant.category]
+    .filter(Boolean)
+    .filter(detail => detail !== participant.label)
+    .join(' · ');
+
 const participantLabel = participant =>
   participant.label || participant.phone || participant.jid || 'Participante';
 
@@ -94,6 +100,13 @@ const saveParticipant = async participant => {
         jid: participant.jid,
         label: participantLabel(participant),
         lid: participant.lid,
+        profile_name: participant.profile_name,
+        business_name: participant.business_name,
+        description: participant.description,
+        category: participant.category,
+        website: participant.website,
+        email: participant.email,
+        profile_picture_url: participant.profile_picture_url,
       }
     );
     updateParticipant(data.participant);
@@ -159,7 +172,12 @@ watch(
         :key="participant.jid"
         class="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-n-alpha-2"
       >
-        <Avatar :name="participantLabel(participant)" rounded-full :size="32" />
+        <Avatar
+          :name="participantLabel(participant)"
+          :src="participant.profile_picture_url"
+          rounded-full
+          :size="32"
+        />
 
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-1 min-w-0">
@@ -182,6 +200,13 @@ watch(
             :title="participantDetails(participant)"
           >
             {{ participantDetails(participant) }}
+          </div>
+          <div
+            v-if="participantMetaDetails(participant)"
+            class="text-xs truncate text-n-slate-9"
+            :title="participantMetaDetails(participant)"
+          >
+            {{ participantMetaDetails(participant) }}
           </div>
         </div>
 

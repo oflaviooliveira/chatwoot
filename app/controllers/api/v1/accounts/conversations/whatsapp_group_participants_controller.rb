@@ -16,6 +16,7 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     ).perform
 
     update_contact_name(contact_inbox.contact)
+    update_contact_profile(contact_inbox.contact)
 
     render json: {
       participant: decorate_participants([participant_payload]).first,
@@ -89,7 +90,7 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     participants.map do |participant|
       contact = participant_lookup_keys(participant).filter_map { |key| contacts_by_key[key] }.first
       decorated_participant = participant.merge(saved: contact.present?)
-      next decorated_participant unless contact
+      next enrich_unsaved_participant(decorated_participant) unless contact
 
       label = contact_label(contact, participant)
       decorated_participant.merge(
@@ -162,6 +163,89 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
 
   def participant_phone(participant)
     phone_digits(participant[:phone] || participant['phone'] || participant[:jid] || participant['jid'])
+  end
+
+  def enrich_unsaved_participant(participant)
+    return participant unless should_enrich_participant?(participant)
+
+    profile = profile_for_participant(participant_phone(participant))
+    return participant if profile.blank?
+
+    participant.merge(profile.compact)
+  end
+
+  def should_enrich_participant?(participant)
+    return false unless client.configured?
+
+    phone = participant_phone(participant)
+    return false if phone.blank?
+    return false if profile_lookup_limit_reached?
+
+    label = participant[:label] || participant['label']
+    label.blank? || numeric_label?(label) || label.to_s.include?('@')
+  end
+
+  def profile_for_participant(phone)
+    @participant_profile_cache ||= {}
+    return @participant_profile_cache[phone] if @participant_profile_cache.key?(phone)
+
+    @participant_profile_lookup_count ||= 0
+    @participant_profile_lookup_count += 1
+    @participant_profile_cache[phone] = normalize_participant_profile(client.fetch_contact_profile(phone), phone)
+  rescue StandardError => e
+    Rails.logger.warn(
+      "Whatsapp group participant profile lookup failed for conversation #{@conversation.id}: " \
+      "#{e.class} - #{e.message}"
+    )
+    @participant_profile_cache[phone] = {}
+  end
+
+  def profile_lookup_limit_reached?
+    (@participant_profile_lookup_count || 0) >= participant_profile_lookup_limit
+  end
+
+  def participant_profile_lookup_limit
+    ENV.fetch('WHATSAPP_GROUP_PARTICIPANT_PROFILE_LOOKUP_LIMIT', 8).to_i.clamp(0, 25)
+  end
+
+  def normalize_participant_profile(profile_data, phone)
+    profile_data ||= {}
+    profile = profile_data[:profile] || {}
+    business_profile = profile_data[:business_profile] || {}
+    profile_picture = profile_data[:profile_picture] || {}
+
+    business_name = extract_first(business_profile, %w[businessName name verifiedName])
+    profile_name = extract_first(profile, %w[name pushName profileName notify])
+    display_name = [business_name, profile_name].find { |value| value.present? && !numeric_label?(value) && !value.include?('@') }
+
+    {
+      label: display_name,
+      profile_name: profile_name,
+      business_name: business_name,
+      description: extract_first(business_profile, %w[description businessDescription about status]),
+      category: extract_first(business_profile, %w[category businessCategory vertical]),
+      website: extract_first(business_profile, %w[website websites site]),
+      email: extract_first(business_profile, %w[email businessEmail]),
+      profile_picture_url: extract_first(profile_picture, %w[profilePictureUrl url picture]),
+      phone: phone
+    }.compact
+  end
+
+  def extract_first(payload, keys)
+    payload = unwrap_payload(payload)
+    keys.lazy.map { |key| payload[key] || payload[key.to_sym] }.find(&:present?)
+  end
+
+  def unwrap_payload(payload)
+    return {} unless payload.is_a?(Hash)
+
+    data = payload['data'] || payload[:data]
+    return unwrap_payload(data) if data.is_a?(Hash)
+
+    business_profile = payload['businessProfile'] || payload[:businessProfile]
+    return unwrap_payload(business_profile) if business_profile.is_a?(Hash)
+
+    payload
   end
 
   def lookup_keys(value)
@@ -238,6 +322,7 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
   def contact_attributes_for_participant
     {
       name: contact_name_for_participant,
+      email: participant_email,
       phone_number: formatted_participant_phone,
       identifier: participant_jid,
       additional_attributes: {
@@ -245,22 +330,81 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
         whatsapp_lid: participant_lid,
         whatsapp_group_jid: source_id,
         whatsapp_group_participant: true
-      }.compact
+      }.compact.merge(participant_additional_attributes)
     }.compact
   end
 
   def contact_name_for_participant
+    enriched_name = participant_enriched_name
+    return enriched_name if enriched_name.present?
     return participant_label unless numeric_label?(participant_label)
 
     formatted_participant_phone || participant_jid
   end
 
   def update_contact_name(contact)
-    label = participant_label
+    label = participant_enriched_name || participant_label
     return if numeric_label?(label)
     return if contact.name.present? && !numeric_label?(contact.name)
 
     contact.update!(name: label)
+  end
+
+  def participant_enriched_name
+    [
+      params[:business_name],
+      params[:profile_name],
+      params[:label]
+    ].map { |value| value.to_s.strip }
+     .find { |value| value.present? && !numeric_label?(value) && !value.include?('@') }
+  end
+
+  def participant_email
+    email = params[:email].to_s.strip
+    return unless Devise.email_regexp.match?(email)
+    return if Current.account.contacts.where(email: email).exists?
+
+    email
+  end
+
+  def participant_additional_attributes
+    attrs = {}
+    attrs[:company_name] = params[:business_name].to_s.strip if params[:business_name].present?
+    attrs[:description] = params[:description].to_s.strip if params[:description].present?
+    attrs[:whatsapp_profile] = participant_whatsapp_profile
+    attrs.compact
+  end
+
+  def participant_whatsapp_profile
+    {
+      type: 'contact',
+      jid: participant_jid,
+      lid: participant_lid,
+      display_name: participant_enriched_name,
+      profile_name: params[:profile_name].to_s.strip.presence,
+      business_name: params[:business_name].to_s.strip.presence,
+      description: params[:description].to_s.strip.presence,
+      category: params[:category].to_s.strip.presence,
+      website: params[:website].to_s.strip.presence,
+      email: participant_email,
+      phone_number: formatted_participant_phone,
+      profile_picture_url: params[:profile_picture_url].to_s.strip.presence,
+      source: 'evolution',
+      synced_at: Time.current.iso8601
+    }.compact
+  end
+
+  def update_contact_profile(contact)
+    attrs = contact.additional_attributes || {}
+    contact.update!(additional_attributes: attrs.deep_merge(participant_additional_attributes.deep_stringify_keys))
+    enqueue_avatar_sync(contact)
+  end
+
+  def enqueue_avatar_sync(contact)
+    avatar_url = params[:profile_picture_url].to_s.strip
+    return if avatar_url.blank?
+
+    Avatar::AvatarFromUrlJob.perform_later(contact, avatar_url)
   end
 
   def contact_payload(contact)
