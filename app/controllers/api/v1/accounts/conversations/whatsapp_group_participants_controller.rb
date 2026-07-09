@@ -95,7 +95,8 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
       label = contact_label(contact, participant)
       decorated_participant.merge(
         label: label || participant[:label] || participant['label'],
-        contact_id: contact.id
+        contact_id: contact.id,
+        name_source: 'contact'
       )
     end
   end
@@ -170,6 +171,7 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
   end
 
   def enrich_unsaved_participant(participant)
+    participant = participant.merge(name_source: participant_name_source(participant))
     return participant unless should_enrich_participant?(participant)
 
     profile = profile_for_participant(participant_phone(participant))
@@ -224,13 +226,15 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
               extract_first(profile, %w[website websites site])
     email = extract_first(business_profile, %w[email businessEmail]) ||
             extract_first(profile, %w[email businessEmail])
-    business_name = extract_first(business_profile, %w[businessName name verifiedName]) ||
-                    inferred_business_name(description: description, website: website, email: email)
+    explicit_business_name = extract_first(business_profile, %w[businessName name verifiedName])
+    inferred_business_name = inferred_business_name(description: description, website: website, email: email)
+    business_name = explicit_business_name || inferred_business_name&.dig(:label)
     profile_name = extract_first(profile, %w[name pushName profileName notify])
     display_name = [business_name, profile_name].find { |value| value.present? && !numeric_label?(value) && !value.include?('@') }
 
     {
       label: display_name,
+      name_source: participant_profile_name_source(explicit_business_name, profile_name, inferred_business_name),
       profile_name: profile_name,
       business_name: business_name,
       description: description,
@@ -245,8 +249,8 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
 
   def inferred_business_name(description:, website:, email:)
     business_name_from_description(description) ||
-      business_name_from_domain(website) ||
-      business_name_from_domain(email.to_s.split('@').last)
+      business_name_from_domain(website, source: 'site') ||
+      business_name_from_domain(email.to_s.split('@').last, source: 'email')
   end
 
   def business_name_from_description(description)
@@ -254,10 +258,11 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     return if text.blank?
 
     candidate = text[/\b(?:da|do|de)\s+([^.,;\n]+)/i, 1]
-    normalize_inferred_business_name(candidate)
+    inferred = normalize_inferred_business_name(candidate)
+    { label: inferred, source: 'description' } if inferred.present?
   end
 
-  def business_name_from_domain(value)
+  def business_name_from_domain(value, source:)
     values = normalize_website_values(value)
     host = values.filter_map do |candidate|
       candidate = candidate.to_s.strip
@@ -270,7 +275,8 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     end.first
     return if host.blank?
 
-    normalize_inferred_business_name(host.sub(/\Awww\./, '').split('.').first&.titleize)
+    inferred = normalize_inferred_business_name(host.sub(/\Awww\./, '').split('.').first&.titleize)
+    { label: inferred, source: source } if inferred.present?
   end
 
   def normalize_website_values(value)
@@ -290,6 +296,20 @@ class Api::V1::Accounts::Conversations::WhatsappGroupParticipantsController < Ap
     return if value.length > 80
 
     value
+  end
+
+  def participant_profile_name_source(explicit_business_name, profile_name, inferred_business_name)
+    return 'whatsapp_business' if explicit_business_name.present?
+    return 'whatsapp' if profile_name.present?
+
+    inferred_business_name&.dig(:source)
+  end
+
+  def participant_name_source(participant)
+    label = participant[:label] || participant['label']
+    return 'phone' if label.blank? || numeric_label?(label) || label.to_s.include?('@')
+
+    'whatsapp'
   end
 
   def extract_first(payload, keys)

@@ -53,7 +53,8 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
             'jid' => '5521985294475@s.whatsapp.net',
             'label' => 'Joao Pedro',
             'phone' => '5521985294475',
-            'saved' => false
+            'saved' => false,
+            'name_source' => 'whatsapp'
           }
         ]
       )
@@ -86,7 +87,8 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
             'label' => 'Maria Silva',
             'phone' => '5521985294475',
             'saved' => true,
-            'contact_id' => participant_contact.id
+            'contact_id' => participant_contact.id,
+            'name_source' => 'contact'
           }
         ]
       )
@@ -123,6 +125,7 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
             'label' => 'Gquicks',
             'phone' => '5521986118879',
             'saved' => false,
+            'name_source' => 'whatsapp_business',
             'profile_name' => 'Gquicks Atendimento',
             'business_name' => 'Gquicks',
             'category' => 'Servicos financeiros',
@@ -175,6 +178,7 @@ RSpec.describe 'Whatsapp Group Participants API', type: :request do
             'label' => 'GQUICKS BPO Financeiro',
             'phone' => '5521986118879',
             'saved' => false,
+            'name_source' => 'description',
             'business_name' => 'GQUICKS BPO Financeiro',
             'description' => 'Canal oficial de atendimento da GQUICKS BPO Financeiro. Suporte aos clientes.',
             'category' => 'Other Business',

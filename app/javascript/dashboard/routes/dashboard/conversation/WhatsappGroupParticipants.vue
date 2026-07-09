@@ -2,6 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import { useAlert } from 'dashboard/composables';
 import Avatar from 'next/avatar/Avatar.vue';
+import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Spinner from 'dashboard/components-next/spinner/Spinner.vue';
 import WhatsappGroupParticipantsAPI from 'dashboard/api/inbox/whatsappGroupParticipants';
@@ -18,6 +19,17 @@ const search = ref('');
 const isLoading = ref(false);
 const hasError = ref(false);
 const savingJids = ref(new Set());
+const saveDialogRef = ref(null);
+const selectedParticipant = ref(null);
+const contactForm = ref({
+  name: '',
+  phone: '',
+  company: '',
+  email: '',
+  description: '',
+  category: '',
+  website: '',
+});
 
 const filteredParticipants = computed(() => {
   const query = search.value.trim().toLowerCase();
@@ -51,6 +63,32 @@ const participantMetaDetails = participant =>
 const participantLabel = participant =>
   participant.label || participant.phone || participant.jid || 'Participante';
 
+const sourceLabel = participant => {
+  if (participant.saved) return 'Contato salvo';
+
+  const labels = {
+    whatsapp: 'WhatsApp',
+    whatsapp_business: 'WhatsApp Business',
+    description: 'Descricao',
+    site: 'Site',
+    email: 'E-mail',
+    phone: 'Telefone',
+  };
+
+  return labels[participant.name_source] || '';
+};
+
+const sourceBadgeClass = participant => {
+  if (participant.saved) return 'bg-n-teal-3 text-n-teal-11';
+  if (['description', 'site', 'email'].includes(participant.name_source)) {
+    return 'bg-n-blue-3 text-n-blue-11';
+  }
+  if (participant.name_source === 'phone') {
+    return 'bg-n-slate-3 text-n-slate-11';
+  }
+  return 'bg-n-purple-3 text-n-purple-11';
+};
+
 const isSaving = participant => savingJids.value.has(participant.jid);
 
 const setSaving = (jid, value) => {
@@ -63,13 +101,49 @@ const setSaving = (jid, value) => {
   savingJids.value = nextSavingJids;
 };
 
-const updateParticipant = updatedParticipant => {
+const updateParticipant = (
+  updatedParticipant,
+  originalJid = updatedParticipant.jid
+) => {
   participants.value = participants.value.map(participant =>
-    participant.jid === updatedParticipant.jid
+    participant.jid === originalJid
       ? { ...participant, ...updatedParticipant }
       : participant
   );
 };
+
+const normalizeWebsite = value => {
+  if (Array.isArray(value)) return value.join(', ');
+  return value || '';
+};
+
+const openSaveDialog = participant => {
+  if (!participant?.jid || participant.saved || isSaving(participant)) return;
+
+  selectedParticipant.value = participant;
+  contactForm.value = {
+    name: participantLabel(participant),
+    phone: participant.phone || participant.jid?.split('@')[0] || '',
+    company: participant.business_name || '',
+    email: participant.email || '',
+    description: participant.description || '',
+    category: participant.category || '',
+    website: normalizeWebsite(participant.website),
+  };
+  saveDialogRef.value?.open();
+};
+
+const closeSaveDialog = () => {
+  selectedParticipant.value = null;
+};
+
+const normalizedFormPhone = computed(() =>
+  contactForm.value.phone.toString().replace(/\D/g, '')
+);
+
+const canSaveDialog = computed(
+  () => contactForm.value.name.trim() && normalizedFormPhone.value
+);
 
 const fetchParticipants = async () => {
   if (!props.conversationId) return;
@@ -89,32 +163,39 @@ const fetchParticipants = async () => {
   }
 };
 
-const saveParticipant = async participant => {
+const saveParticipant = async () => {
+  const participant = selectedParticipant.value;
   if (!participant?.jid || participant.saved || isSaving(participant)) return;
 
-  setSaving(participant.jid, true);
+  const originalJid = participant.jid;
+  const jid = normalizedFormPhone.value
+    ? `${normalizedFormPhone.value}@s.whatsapp.net`
+    : participant.jid;
+
+  setSaving(originalJid, true);
   try {
     const { data } = await WhatsappGroupParticipantsAPI.saveContact(
       props.conversationId,
       {
-        jid: participant.jid,
-        label: participantLabel(participant),
+        jid,
+        label: contactForm.value.name.trim(),
         lid: participant.lid,
-        profile_name: participant.profile_name,
-        business_name: participant.business_name,
-        description: participant.description,
-        category: participant.category,
-        website: participant.website,
-        email: participant.email,
+        profile_name: contactForm.value.name.trim(),
+        business_name: contactForm.value.company.trim(),
+        description: contactForm.value.description.trim(),
+        category: contactForm.value.category.trim(),
+        website: contactForm.value.website.trim(),
+        email: contactForm.value.email.trim(),
         profile_picture_url: participant.profile_picture_url,
       }
     );
-    updateParticipant(data.participant);
+    updateParticipant(data.participant, originalJid);
+    saveDialogRef.value?.close();
     useAlert('Contato salvo');
   } catch {
     useAlert('Nao foi possivel salvar o contato');
   } finally {
-    setSaving(participant.jid, false);
+    setSaving(originalJid, false);
   }
 };
 
@@ -193,6 +274,13 @@ watch(
             >
               Admin
             </span>
+            <span
+              v-if="sourceLabel(participant)"
+              class="shrink-0 rounded px-1.5 py-0.5 text-[0.625rem] font-medium"
+              :class="sourceBadgeClass(participant)"
+            >
+              {{ sourceLabel(participant) }}
+            </span>
           </div>
           <div
             v-if="participantDetails(participant)"
@@ -225,7 +313,7 @@ watch(
           label="Salvar"
           :is-loading="isSaving(participant)"
           :disabled="isSaving(participant)"
-          @click="saveParticipant(participant)"
+          @click="openSaveDialog(participant)"
         />
       </div>
     </div>
@@ -240,5 +328,97 @@ watch(
     <p v-else class="px-3 py-6 text-sm leading-6 text-center text-n-slate-11">
       Nenhum participante encontrado
     </p>
+
+    <Dialog
+      ref="saveDialogRef"
+      width="lg"
+      title="Salvar participante"
+      description="Revise os dados antes de criar o contato no Chatwoot."
+      confirm-button-label="Salvar contato"
+      cancel-button-label="Cancelar"
+      :is-loading="selectedParticipant ? isSaving(selectedParticipant) : false"
+      :disable-confirm-button="!canSaveDialog"
+      @confirm="saveParticipant"
+      @close="closeSaveDialog"
+    >
+      <div class="flex flex-col gap-4">
+        <div class="flex items-center gap-3 rounded-md bg-n-alpha-2 p-3">
+          <Avatar
+            :name="contactForm.name || 'Participante'"
+            :src="selectedParticipant?.profile_picture_url"
+            rounded-full
+            :size="40"
+          />
+          <div class="min-w-0">
+            <div class="truncate text-sm font-medium text-n-slate-12">
+              {{ contactForm.name || 'Participante' }}
+            </div>
+            <div class="truncate text-xs text-n-slate-10">
+              {{ selectedParticipant?.jid }}
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label class="flex flex-col gap-1 text-sm text-n-slate-12">
+            Nome
+            <input
+              v-model="contactForm.name"
+              class="h-10 rounded-md border border-n-weak bg-n-solid-1 px-3 text-sm outline-none focus:border-n-brand"
+              placeholder="Nome do contato"
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-n-slate-12">
+            Telefone
+            <input
+              v-model="contactForm.phone"
+              class="h-10 rounded-md border border-n-weak bg-n-solid-1 px-3 text-sm outline-none focus:border-n-brand"
+              placeholder="+55..."
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-n-slate-12">
+            Empresa
+            <input
+              v-model="contactForm.company"
+              class="h-10 rounded-md border border-n-weak bg-n-solid-1 px-3 text-sm outline-none focus:border-n-brand"
+              placeholder="Empresa"
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-n-slate-12">
+            E-mail
+            <input
+              v-model="contactForm.email"
+              class="h-10 rounded-md border border-n-weak bg-n-solid-1 px-3 text-sm outline-none focus:border-n-brand"
+              placeholder="email@empresa.com"
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-n-slate-12">
+            Categoria
+            <input
+              v-model="contactForm.category"
+              class="h-10 rounded-md border border-n-weak bg-n-solid-1 px-3 text-sm outline-none focus:border-n-brand"
+              placeholder="Categoria"
+            />
+          </label>
+          <label class="flex flex-col gap-1 text-sm text-n-slate-12">
+            Site
+            <input
+              v-model="contactForm.website"
+              class="h-10 rounded-md border border-n-weak bg-n-solid-1 px-3 text-sm outline-none focus:border-n-brand"
+              placeholder="https://..."
+            />
+          </label>
+        </div>
+
+        <label class="flex flex-col gap-1 text-sm text-n-slate-12">
+          Descricao
+          <textarea
+            v-model="contactForm.description"
+            class="min-h-20 rounded-md border border-n-weak bg-n-solid-1 px-3 py-2 text-sm outline-none focus:border-n-brand"
+            placeholder="Descricao do contato"
+          />
+        </label>
+      </div>
+    </Dialog>
   </div>
 </template>
