@@ -737,7 +737,11 @@ function insertWhatsappMention(participant) {
   const label = participant?.label || participant?.phone || participant?.jid;
   if (!label) return;
 
-  const node = editorView.state.schema.text(`@${label}`);
+  const mentionToken =
+    participant?.phone ||
+    `${participant?.jid || participant?.lid || ''}`.replace(/\D/g, '') ||
+    label;
+  const node = editorView.state.schema.text(`@${label} `);
   const from = range.value?.from || editorView.state.selection.from || 0;
   const to = range.value?.to;
 
@@ -745,7 +749,10 @@ function insertWhatsappMention(participant) {
   showWhatsappMentions.value = false;
   emit('selectWhatsappMention', {
     jid: participant.jid,
+    lid: participant.lid,
+    phone: participant.phone,
     label,
+    token: mentionToken,
   });
 }
 

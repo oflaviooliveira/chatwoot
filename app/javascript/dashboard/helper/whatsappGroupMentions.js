@@ -18,31 +18,37 @@ export const normalizeWhatsappMentionsForContent = (
 
   return mentions
     .filter(mention => {
-      const label = mention?.label?.trim();
-      return label && content.includes(`@${label}`);
+      return mentionLookupKeys(mention).some(key =>
+        content.includes(`@${key}`)
+      );
     })
     .filter(mention => {
-      if (seen.has(mention.jid)) return false;
-      seen.add(mention.jid);
+      const mentionIdentifier = mention.jid || mention.lid || mention.phone;
+      if (!mentionIdentifier || seen.has(mentionIdentifier)) return false;
+      seen.add(mentionIdentifier);
       return true;
     })
-    .map(({ jid, label }) => ({ jid, label }));
+    .map(({ jid, lid, phone, label }) =>
+      Object.fromEntries(
+        Object.entries({ jid, lid, phone, label }).filter(([, value]) => value)
+      )
+    );
 };
 
 const phoneDigits = value => `${value || ''}`.replace(/\D/g, '');
 
 const mentionLookupKeys = mention => {
   const keys = [];
-  const { jid, lid, phone } = mention || {};
+  const { jid, label, lid, phone, token } = mention || {};
 
-  [jid, lid, phone].forEach(value => {
+  [label, token, jid, lid, phone].forEach(value => {
     if (!value) return;
-    keys.push(value);
+    keys.push(`${value}`.trim());
     const digits = phoneDigits(value);
     if (digits) keys.push(digits);
   });
 
-  return keys;
+  return [...new Set(keys.filter(Boolean))];
 };
 
 const whatsappMentionsFromAttributes = contentAttributes => {

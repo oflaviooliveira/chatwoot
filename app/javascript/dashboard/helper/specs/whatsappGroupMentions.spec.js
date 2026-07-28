@@ -28,9 +28,19 @@ describe('#whatsappGroupMentions', () => {
   describe('#normalizeWhatsappMentionsForContent', () => {
     it('keeps selected mentions that are still visible in content', () => {
       const mentions = [
-        { jid: '5521985294475@s.whatsapp.net', label: 'Joao Pedro' },
+        {
+          jid: '5521985294475@s.whatsapp.net',
+          lid: '117184105812212@lid',
+          phone: '5521985294475',
+          label: 'Joao Pedro',
+        },
         { jid: '5521999999999@s.whatsapp.net', label: 'Ana Silva' },
-        { jid: '5521985294475@s.whatsapp.net', label: 'Joao Pedro' },
+        {
+          jid: '5521985294475@s.whatsapp.net',
+          lid: '117184105812212@lid',
+          phone: '5521985294475',
+          label: 'Joao Pedro',
+        },
       ];
 
       expect(
@@ -39,8 +49,37 @@ describe('#whatsappGroupMentions', () => {
           'Ola @Joao Pedro, pode validar?'
         )
       ).toEqual([
-        { jid: '5521985294475@s.whatsapp.net', label: 'Joao Pedro' },
+        {
+          jid: '5521985294475@s.whatsapp.net',
+          lid: '117184105812212@lid',
+          phone: '5521985294475',
+          label: 'Joao Pedro',
+        },
       ]);
+    });
+
+    it('keeps selected mentions matched by phone or lid tokens', () => {
+      const mentions = [
+        {
+          jid: '5521985294475@s.whatsapp.net',
+          lid: '117184105812212@lid',
+          phone: '5521985294475',
+          label: 'Joao Pedro',
+        },
+        {
+          jid: '5521981618351@s.whatsapp.net',
+          lid: '76716890431647@lid',
+          phone: '5521981618351',
+          label: 'Stephani',
+        },
+      ];
+
+      expect(
+        normalizeWhatsappMentionsForContent(
+          mentions,
+          'Ola @117184105812212 e @5521981618351'
+        )
+      ).toEqual(mentions);
     });
   });
 

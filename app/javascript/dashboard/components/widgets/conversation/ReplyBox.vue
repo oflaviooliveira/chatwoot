@@ -801,10 +801,14 @@ export default {
       }
     },
     onSelectWhatsappMention(mention) {
-      if (!mention?.jid) return;
+      const mentionIdentifier = mention?.jid || mention?.lid || mention?.phone;
+      if (!mentionIdentifier) return;
 
       const existingIndex = this.selectedWhatsappMentions.findIndex(
-        selectedMention => selectedMention.jid === mention.jid
+        selectedMention =>
+          (selectedMention.jid ||
+            selectedMention.lid ||
+            selectedMention.phone) === mentionIdentifier
       );
 
       if (existingIndex >= 0) {
