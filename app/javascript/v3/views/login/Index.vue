@@ -1,8 +1,9 @@
 <script>
 // utils and composables
+import { defineAsyncComponent } from 'vue';
 import { login } from '../../api/auth';
 import { mapGetters } from 'vuex';
-import { useAlert } from 'dashboard/composables';
+import { useAlert } from 'dashboard/composables/useAlert';
 import { required, email } from '@vuelidate/validators';
 import { useVuelidate } from '@vuelidate/core';
 import { SESSION_STORAGE_KEYS } from 'dashboard/constants/sessionStorage';
@@ -15,7 +16,10 @@ import GoogleOAuthButton from '../../components/GoogleOauth/Button.vue';
 import Spinner from 'shared/components/Spinner.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
-import MfaVerification from 'dashboard/components/auth/MfaVerification.vue';
+
+const MfaVerification = defineAsyncComponent(
+  () => import('dashboard/components/auth/MfaVerification.vue')
+);
 
 const ERROR_MESSAGES = {
   'no-account-found': 'LOGIN.OAUTH.NO_ACCOUNT_FOUND',
