@@ -10,7 +10,7 @@ import { useRoute } from 'vue-router';
 import { LocalStorage } from 'shared/helpers/localStorage';
 import { ACCOUNT_EVENTS } from 'dashboard/helper/AnalyticsHelper/events';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
-import { getInboxIconByType } from 'dashboard/helper/inbox';
+import { getInboxIconByType, INBOX_TYPES } from 'dashboard/helper/inbox';
 import { BUS_EVENTS } from 'shared/constants/busEvents';
 import {
   MESSAGE_TYPES,
@@ -373,6 +373,8 @@ const contextMenuEnabledOptions = computed(() => {
   const isFailedOrProcessing =
     props.status === MESSAGE_STATUS.FAILED ||
     props.status === MESSAGE_STATUS.PROGRESS;
+  const isApiInbox = inbox.value?.channel_type === INBOX_TYPES.API;
+  const isWithinEditWindow = Date.now() / 1000 - props.createdAt < 15 * 60;
 
   return {
     copy: hasText,
@@ -381,6 +383,15 @@ const contextMenuEnabledOptions = computed(() => {
       !isFailedOrProcessing &&
       !isMessageDeleted.value,
     cannedResponse: isOutgoing && hasText && !isMessageDeleted.value,
+    edit:
+      isApiInbox &&
+      isOutgoing &&
+      hasText &&
+      !hasAttachments &&
+      !props.private &&
+      !isFailedOrProcessing &&
+      !isMessageDeleted.value &&
+      isWithinEditWindow,
     copyLink: !isFailedOrProcessing,
     translate: !isFailedOrProcessing && !isMessageDeleted.value && hasText,
     replyTo:

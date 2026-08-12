@@ -15,8 +15,14 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
   end
 
   def update
-    Messages::StatusUpdateService.new(message, permitted_params[:status], permitted_params[:external_error]).perform
+    if permitted_params.key?(:content)
+      Messages::EditService.new(message, permitted_params[:content]).perform
+    else
+      Messages::StatusUpdateService.new(message, permitted_params[:status], permitted_params[:external_error]).perform
+    end
     @message = message
+  rescue Messages::EditService::Error => e
+    render json: { error: e.message }, status: :unprocessable_entity
   end
 
   def destroy
@@ -66,7 +72,7 @@ class Api::V1::Accounts::Conversations::MessagesController < Api::V1::Accounts::
   end
 
   def permitted_params
-    params.permit(:id, :target_language, :status, :external_error)
+    params.permit(:id, :target_language, :status, :external_error, :content)
   end
 
   def already_translated_content_available?

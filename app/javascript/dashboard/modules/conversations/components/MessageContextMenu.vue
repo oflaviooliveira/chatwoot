@@ -14,6 +14,8 @@ import {
 import MenuItem from '../../../components/widgets/conversation/contextMenu/menuItem.vue';
 import { useTrack } from 'dashboard/composables';
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import NextDialog from 'dashboard/components-next/dialog/Dialog.vue';
+import TextArea from 'dashboard/components-next/textarea/TextArea.vue';
 
 export default {
   components: {
@@ -21,6 +23,8 @@ export default {
     MenuItem,
     ContextMenu,
     NextButton,
+    NextDialog,
+    TextArea,
   },
   props: {
     message: {
@@ -56,6 +60,8 @@ export default {
     return {
       isCannedResponseModalOpen: false,
       showDeleteModal: false,
+      editedContent: '',
+      isEditing: false,
     };
   },
   computed: {
@@ -137,6 +143,40 @@ export default {
       this.handleClose();
       this.showDeleteModal = true;
     },
+    openEditModal() {
+      this.editedContent = this.messageContent;
+      this.handleClose();
+      this.$nextTick(() => this.$refs.editMessageDialog?.open());
+    },
+    closeEditModal() {
+      this.editedContent = '';
+      this.isEditing = false;
+    },
+    async confirmEdit() {
+      if (
+        !this.editedContent.trim() ||
+        this.editedContent === this.messageContent
+      ) {
+        return;
+      }
+
+      this.isEditing = true;
+      try {
+        await this.$store.dispatch('editMessage', {
+          conversationId: this.conversationId,
+          messageId: this.messageId,
+          content: this.editedContent,
+        });
+        useAlert(this.$t('CONVERSATION.CONTEXT_MENU.EDIT_SUCCESS'));
+        this.$refs.editMessageDialog?.close();
+      } catch (error) {
+        const errorMessage =
+          error?.response?.data?.error ||
+          this.$t('CONVERSATION.CONTEXT_MENU.EDIT_ERROR');
+        useAlert(errorMessage);
+        this.isEditing = false;
+      }
+    },
     async confirmDeletion() {
       try {
         await this.$store.dispatch('deleteMessage', {
@@ -181,6 +221,28 @@ export default {
       :confirm-text="$t('CONVERSATION.CONTEXT_MENU.DELETE_CONFIRMATION.DELETE')"
       :reject-text="$t('CONVERSATION.CONTEXT_MENU.DELETE_CONFIRMATION.CANCEL')"
     />
+    <NextDialog
+      ref="editMessageDialog"
+      :title="$t('CONVERSATION.CONTEXT_MENU.EDIT_TITLE')"
+      :description="$t('CONVERSATION.CONTEXT_MENU.EDIT_DESCRIPTION')"
+      :confirm-button-label="$t('CONVERSATION.CONTEXT_MENU.EDIT_SAVE')"
+      :is-loading="isEditing"
+      :disable-confirm-button="
+        !editedContent.trim() || editedContent === messageContent
+      "
+      @confirm="confirmEdit"
+      @close="closeEditModal"
+    >
+      <TextArea
+        v-model="editedContent"
+        autofocus
+        auto-height
+        resize
+        min-height="7rem"
+        :max-length="150000"
+        :placeholder="$t('CONVERSATION.CONTEXT_MENU.EDIT_PLACEHOLDER')"
+      />
+    </NextDialog>
     <NextButton
       v-if="!hideButton"
       ghost
@@ -205,6 +267,15 @@ export default {
           }"
           variant="icon"
           @click.stop="handleReplyTo"
+        />
+        <MenuItem
+          v-if="enabledOptions['edit']"
+          :option="{
+            icon: 'edit',
+            label: $t('CONVERSATION.CONTEXT_MENU.EDIT'),
+          }"
+          variant="icon"
+          @click.stop="openEditModal"
         />
         <MenuItem
           v-if="enabledOptions['copy']"

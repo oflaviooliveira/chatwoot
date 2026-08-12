@@ -331,6 +331,35 @@ RSpec.describe 'Conversation Messages API', type: :request do
       context 'when agent has API inbox' do
         before { create(:inbox_member, inbox: api_inbox, user: agent) }
 
+        it 'edits a recently sent outgoing text message' do
+          message.update!(message_type: :outgoing, content_type: :text, content: 'Original message', created_at: 5.minutes.ago)
+
+          patch api_v1_account_conversation_message_url(
+            account_id: account.id,
+            conversation_id: conversation.display_id,
+            id: message.id
+          ), params: { content: 'Corrected message' }, headers: agent.create_new_auth_token, as: :json
+
+          expect(response).to have_http_status(:success)
+          expect(message.reload.content).to eq('Corrected message')
+          expect(message.content_attributes).to include('edited' => true)
+        end
+
+        it 'rejects editing a message after 15 minutes' do
+          message.update!(message_type: :outgoing, content_type: :text, content: 'Original message')
+          message.update_column(:created_at, 16.minutes.ago)
+
+          patch api_v1_account_conversation_message_url(
+            account_id: account.id,
+            conversation_id: conversation.display_id,
+            id: message.id
+          ), params: { content: 'Too late' }, headers: agent.create_new_auth_token, as: :json
+
+          expect(response).to have_http_status(:unprocessable_entity)
+          expect(response.parsed_body['error']).to eq('The message edit window has expired')
+          expect(message.reload.content).to eq('Original message')
+        end
+
         it 'uses StatusUpdateService to perform status update' do
           service = instance_double(Messages::StatusUpdateService)
           expect(Messages::StatusUpdateService).to receive(:new)

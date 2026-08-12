@@ -350,6 +350,12 @@ const actions = {
     }
   },
 
+  editMessage: async ({ commit }, { conversationId, messageId, content }) => {
+    const { data } = await MessageApi.edit(conversationId, messageId, content);
+    commit(types.ADD_MESSAGE, data);
+    return data;
+  },
+
   deleteConversation: async ({ commit, dispatch }, conversationId) => {
     try {
       await ConversationApi.delete(conversationId);

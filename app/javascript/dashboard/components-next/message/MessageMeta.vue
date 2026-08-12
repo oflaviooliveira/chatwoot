@@ -133,6 +133,9 @@ const statusToShow = computed(() => {
 
 <template>
   <div class="text-xs flex items-center gap-1.5">
+    <span v-if="contentAttributes?.edited">
+      {{ $t('CONVERSATION.CONTEXT_MENU.EDITED') }}
+    </span>
     <div class="inline">
       <time class="inline">{{ readableTime }}</time>
     </div>
