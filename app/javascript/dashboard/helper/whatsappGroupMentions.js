@@ -1,13 +1,29 @@
-export const isWhatsappGroupConversation = (conversation = {}, isAPIInbox) => {
+export const isWhatsappGroupConversation = (conversation, isAPIInbox) => {
   if (!isAPIInbox) return false;
 
-  const sourceId =
-    conversation?.contact_inbox?.source_id ||
-    conversation?.meta?.sender?.identifier ||
-    conversation?.meta?.sender?.phone_number ||
-    '';
+  const sourceIds = [
+    conversation?.contact_inbox?.source_id,
+    conversation?.meta?.sender?.identifier,
+    conversation?.meta?.sender?.phone_number,
+  ];
 
-  return sourceId.endsWith('@g.us');
+  return sourceIds.some(sourceId => sourceId?.endsWith('@g.us'));
+};
+
+const phoneDigits = value => `${value || ''}`.replace(/\D/g, '');
+
+const mentionLookupKeys = mention => {
+  const keys = [];
+  const { jid, label, lid, phone, token } = mention || {};
+
+  [label, token, jid, lid, phone].forEach(value => {
+    if (!value) return;
+    keys.push(`${value}`.trim());
+    const digits = phoneDigits(value);
+    if (digits) keys.push(digits);
+  });
+
+  return [...new Set(keys.filter(Boolean))];
 };
 
 export const normalizeWhatsappMentionsForContent = (
@@ -35,22 +51,6 @@ export const normalizeWhatsappMentionsForContent = (
     );
 };
 
-const phoneDigits = value => `${value || ''}`.replace(/\D/g, '');
-
-const mentionLookupKeys = mention => {
-  const keys = [];
-  const { jid, label, lid, phone, token } = mention || {};
-
-  [label, token, jid, lid, phone].forEach(value => {
-    if (!value) return;
-    keys.push(`${value}`.trim());
-    const digits = phoneDigits(value);
-    if (digits) keys.push(digits);
-  });
-
-  return [...new Set(keys.filter(Boolean))];
-};
-
 const whatsappMentionsFromAttributes = contentAttributes => {
   return (
     contentAttributes?.whatsappMentions ||
@@ -59,7 +59,10 @@ const whatsappMentionsFromAttributes = contentAttributes => {
   );
 };
 
-export const renderWhatsappMentions = (content = '', contentAttributes = {}) => {
+export const renderWhatsappMentions = (
+  content = '',
+  contentAttributes = {}
+) => {
   const mentions = whatsappMentionsFromAttributes(contentAttributes);
   if (!content || !mentions.length) return content;
 

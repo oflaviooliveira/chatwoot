@@ -15,6 +15,38 @@ describe('#whatsappGroupMentions', () => {
       ).toBe(true);
     });
 
+    it('detects a group identifier when the contact inbox uses an internal source id', () => {
+      expect(
+        isWhatsappGroupConversation(
+          {
+            contact_inbox: {
+              source_id: '30cb2246-fae8-4502-9e4c-1595d98005c0',
+            },
+            meta: {
+              sender: { identifier: '120363428151810316@g.us' },
+            },
+          },
+          true
+        )
+      ).toBe(true);
+    });
+
+    it('ignores API inbox conversations without a group identifier', () => {
+      expect(
+        isWhatsappGroupConversation(
+          {
+            contact_inbox: {
+              source_id: '30cb2246-fae8-4502-9e4c-1595d98005c0',
+            },
+            meta: {
+              sender: { identifier: '5521985294475@s.whatsapp.net' },
+            },
+          },
+          true
+        )
+      ).toBe(false);
+    });
+
     it('ignores non API inbox conversations', () => {
       expect(
         isWhatsappGroupConversation(
