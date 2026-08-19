@@ -25,6 +25,17 @@ describe('#MessageFormatter', () => {
     });
   });
 
+  describe('WhatsApp mentions', () => {
+    it('renders a WhatsApp mention with its dedicated visual class', () => {
+      const message =
+        '[@Flavio Oliveira](mention://whatsapp/76716890431647/Flavio%20Oliveira) pode verificar?';
+
+      expect(new MessageFormatter(message).formattedMessage).toContain(
+        '<span class="whatsapp-mention-node">@Flavio Oliveira</span> pode verificar?'
+      );
+    });
+  });
+
   describe('parses heading to strong', () => {
     it('should format correctly', () => {
       const message = '### opensource \n ## tool';

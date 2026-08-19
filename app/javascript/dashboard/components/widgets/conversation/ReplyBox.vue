@@ -1445,6 +1445,7 @@ export default {
           :medium="inbox.medium"
           :enable-whatsapp-group-mentions="enableWhatsappGroupMentions"
           :whatsapp-mention-participants="whatsappMentionParticipants"
+          :selected-whatsapp-mentions="selectedWhatsappMentions"
           :is-loading-whatsapp-mention-participants="
             isLoadingWhatsappMentionParticipants
           "

@@ -1,4 +1,6 @@
 import {
+  decorateWhatsappMentions,
+  findWhatsappMentionRanges,
   isWhatsappGroupConversation,
   normalizeWhatsappMentionsForContent,
   renderWhatsappMentions,
@@ -138,6 +140,56 @@ describe('#whatsappGroupMentions', () => {
           ],
         })
       ).toBe('@76716890431647 Quarta');
+    });
+  });
+
+  describe('#findWhatsappMentionRanges', () => {
+    it('finds only complete mentions selected from the participant list', () => {
+      const mentions = [
+        {
+          lid: '76716890431647@lid',
+          label: 'Flavio Oliveira',
+        },
+      ];
+
+      expect(
+        findWhatsappMentionRanges(
+          'Oi @Flavio Oliveira, fale com @Flavio OliveiraJunior',
+          mentions
+        )
+      ).toEqual([{ from: 3, to: 19 }]);
+    });
+  });
+
+  describe('#decorateWhatsappMentions', () => {
+    it('decorates a saved label mention for message rendering', () => {
+      expect(
+        decorateWhatsappMentions('@Flavio Oliveira pode verificar?', {
+          whatsapp_mentions: [
+            {
+              lid: '76716890431647@lid',
+              label: 'Flavio Oliveira',
+            },
+          ],
+        })
+      ).toBe(
+        '[@Flavio Oliveira](mention://whatsapp/76716890431647/Flavio%20Oliveira) pode verificar?'
+      );
+    });
+
+    it('converts and decorates a raw lid mention token', () => {
+      expect(
+        decorateWhatsappMentions('@76716890431647 pode verificar?', {
+          whatsappMentions: [
+            {
+              lid: '76716890431647@lid',
+              label: 'Flavio Oliveira',
+            },
+          ],
+        })
+      ).toBe(
+        '[@Flavio Oliveira](mention://whatsapp/76716890431647/Flavio%20Oliveira) pode verificar?'
+      );
     });
   });
 });

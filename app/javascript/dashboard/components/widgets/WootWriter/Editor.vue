@@ -49,6 +49,8 @@ import {
   suggestionsPlugin,
   triggerCharacters,
 } from '@chatwoot/prosemirror-schema/src/mentions/plugin';
+import { Plugin } from 'prosemirror-state';
+import { Decoration, DecorationSet } from 'prosemirror-view';
 
 import {
   appendSignature,
@@ -73,6 +75,7 @@ import {
 import { createTypingIndicator } from '@chatwoot/utils';
 import { checkFileSizeLimit } from 'shared/helpers/FileHelper';
 import { uploadFile } from 'dashboard/helper/uploadHelper';
+import { findWhatsappMentionRanges } from 'dashboard/helper/whatsappGroupMentions';
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
@@ -88,6 +91,7 @@ const props = defineProps({
   enableCaptainTools: { type: Boolean, default: false },
   enableWhatsappGroupMentions: { type: Boolean, default: false },
   whatsappMentionParticipants: { type: Array, default: () => [] },
+  selectedWhatsappMentions: { type: Array, default: () => [] },
   isLoadingWhatsappMentionParticipants: { type: Boolean, default: false },
   variables: { type: Object, default: () => ({}) },
   signature: { type: String, default: '' },
@@ -207,6 +211,35 @@ const isTextSelected = ref(false); // Tracks text selection and prevents unneces
 const showSelectionMenu = ref(false);
 const sizes = MESSAGE_EDITOR_IMAGE_RESIZES;
 
+const whatsappMentionDecorationPlugin = new Plugin({
+  props: {
+    decorations(editorState) {
+      if (!props.enableWhatsappGroupMentions) return null;
+
+      const decorations = [];
+      editorState.doc.descendants((node, position) => {
+        if (!node.isText) return;
+
+        findWhatsappMentionRanges(
+          node.text,
+          props.selectedWhatsappMentions
+        ).forEach(({ from, to }) => {
+          decorations.push(
+            Decoration.inline(
+              position + from,
+              position + to,
+              { class: 'whatsapp-mention-node' },
+              { inclusiveStart: false, inclusiveEnd: false }
+            )
+          );
+        });
+      });
+
+      return DecorationSet.create(editorState.doc, decorations);
+    },
+  },
+});
+
 // element ref
 const editorRoot = useTemplateRef('editorRoot');
 const imageUpload = useTemplateRef('imageUpload');
@@ -283,10 +316,15 @@ function createSuggestionPlugin({
 
 const plugins = computed(() => {
   if (!props.enableSuggestions) {
-    return [];
+    return props.enableWhatsappGroupMentions
+      ? [whatsappMentionDecorationPlugin]
+      : [];
   }
 
   return [
+    ...(props.enableWhatsappGroupMentions
+      ? [whatsappMentionDecorationPlugin]
+      : []),
     createSuggestionPlugin({
       trigger: '@',
       showMenu: showToolsMenu,
@@ -838,6 +876,14 @@ watch(
 );
 
 watch(
+  () => props.selectedWhatsappMentions,
+  () => {
+    if (editorView) editorView.updateState(editorView.state);
+  },
+  { deep: true }
+);
+
+watch(
   computed(() => props.editorId),
   () => {
     showCannedMenu.value = false;
@@ -1129,6 +1175,12 @@ useEmitter(BUS_EVENTS.INSERT_INTO_RICH_EDITOR, insertContentIntoEditor);
 
 .prosemirror-tools-node {
   @apply font-medium text-n-slate-12 py-0;
+}
+
+.whatsapp-mention-node {
+  @apply rounded bg-n-teal-3/80 px-0.5 font-semibold text-n-teal-11;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 .editor-wrap {
