@@ -184,6 +184,12 @@ importers:
       prosemirror-schema-list:
         specifier: ^1.5.1
         version: 1.5.1
+      prosemirror-state:
+        specifier: ^1.4.3
+        version: 1.4.3
+      prosemirror-view:
+        specifier: ^1.34.1
+        version: 1.34.1
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
