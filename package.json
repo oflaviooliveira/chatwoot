@@ -87,6 +87,8 @@
     "pinia": "^3.0.4",
     "prosemirror-commands": "^1.7.1",
     "prosemirror-schema-list": "^1.5.1",
+    "prosemirror-state": "^1.4.3",
+    "prosemirror-view": "^1.34.1",
     "qrcode": "^1.5.4",
     "semver": "7.6.3",
     "snakecase-keys": "^8.0.1",
