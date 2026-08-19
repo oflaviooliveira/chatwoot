@@ -7,7 +7,7 @@ import TranslationToggle from 'dashboard/components-next/message/TranslationTogg
 import { MESSAGE_TYPES } from '../../constants';
 import { useMessageContext } from '../../provider.js';
 import { useTranslations } from 'dashboard/composables/useTranslations';
-import { renderWhatsappMentions } from 'dashboard/helper/whatsappGroupMentions';
+import { decorateWhatsappMentions } from 'dashboard/helper/whatsappGroupMentions';
 
 const { content, attachments, contentAttributes, messageType } =
   useMessageContext();
@@ -30,7 +30,7 @@ const renderContent = computed(() => {
     return content.value;
   })();
 
-  return renderWhatsappMentions(contentToRender, contentAttributes.value);
+  return decorateWhatsappMentions(contentToRender, contentAttributes.value);
 });
 
 const whatsappGroupSender = computed(() => {
@@ -96,5 +96,11 @@ const handleSeeOriginal = () => {
 <style>
 p:last-child {
   margin-bottom: 0;
+}
+
+.whatsapp-mention-node {
+  @apply rounded bg-n-teal-3/80 px-0.5 font-semibold text-n-teal-11;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 </style>

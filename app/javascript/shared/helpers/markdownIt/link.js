@@ -1,5 +1,5 @@
-// Process [@mention](mention://user/1/Pranav)
-const USER_MENTIONS_REGEX = /mention:\/\/(user|team)\/(\d+)\/(.+)/gm;
+// Process [@mention](mention://user/1/Pranav) and WhatsApp group mentions.
+const MENTIONS_REGEX = /^mention:\/\/(user|team|whatsapp)\/([^/]+)\/(.+)$/;
 
 const buildMentionTokens = () => (state, silent) => {
   var label;
@@ -40,7 +40,8 @@ const buildMentionTokens = () => (state, silent) => {
     pos += 1;
   }
 
-  if (!href.match(new RegExp(USER_MENTIONS_REGEX))) {
+  const mentionMatch = href.match(MENTIONS_REGEX);
+  if (!mentionMatch) {
     return false;
   }
 
@@ -51,6 +52,7 @@ const buildMentionTokens = () => (state, silent) => {
     token = state.push('mention', '');
     token.href = href;
     token.content = label;
+    token.mentionType = mentionMatch[1];
   }
 
   state.pos = pos;
@@ -59,8 +61,14 @@ const buildMentionTokens = () => (state, silent) => {
   return true;
 };
 
-const renderMentions = () => (tokens, idx) => {
-  return `<span class="prosemirror-mention-node">${tokens[idx].content}</span>`;
+const renderMentions = md => (tokens, idx) => {
+  const className =
+    tokens[idx].mentionType === 'whatsapp'
+      ? 'whatsapp-mention-node'
+      : 'prosemirror-mention-node';
+  const content = md.utils.escapeHtml(tokens[idx].content);
+
+  return `<span class="${className}">${content}</span>`;
 };
 
 export default function mentionPlugin(md) {
